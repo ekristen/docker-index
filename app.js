@@ -64,9 +64,13 @@ function generateToken(repo, access, cb) {
   logger.debug('token: ' + sha1);
 
   redis.set("token:" + sha1, JSON.stringify({repo: repo, access: access}), function(err, status) {
-    //redis.expire("token:" + sha1, 30, function(err, status) {
+    // TODO: better way to do this?
+    // Set a 10 minute expiration, 10 minutes should be enough time to download images
+    // in the case of a slow internet connection, this could be a problem, but we do not
+    // want unused tokens remaining in the system either
+    redis.expire("token:" + sha1, 600, function(err, status) {
       cb(sha1);
-    //});
+    });
   });
 }
 
