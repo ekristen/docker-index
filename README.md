@@ -1,49 +1,42 @@
-This is Alpha software.
+This is Alpha software. If you want to help, let me know.
 
 This is a functioning Docker Index that can be run independent of the Docker Registry software.
 
 ## Requirements 
 
-1. Docker Registry
+1. Docker
 2. Redis
 
-## How to Configure
+## How to Use
 
-1. Duplicate config/default.js to config/production.js 
-2. Edit config/production.js
-  * Edit Redis Host and Port Information
-  * Edit Registries entry
-    * Format: host [, host, host, host]
-3. Make sure NODE_ENV is set to production
-4. node app.js
+The best way to do this is to use docker all the way and to use host mounted volumes for configuration files OR build each app by checking out the code and changing the configuration files.
 
-## How to use HTTPS
+1. git clone 
+2. docker pull dockerfile/redis
+3. docker pull registry
+4. docker build -t docker_index .
+5. Create folders for the docker registry and index config files.
+  * mkdir /data/registry/config
+  * mkdir /data/index/config
+6. Grab a copy of the registry config file, and create a *prod* section and fill it out according to your needs and drop it in the folder you created for the registry using the filename *config.yml*. Make sure you set index_endpoint configuration option.
+7. Copy docker.js and template.js from the index/config folder to the folder you setup for the index app config files, rename tempalte to local-docker.js. Configuration files stack by a certain order (you can see http://lorenwest.github.io/node-config/latest/). 
+8. Edit local-docker.js to update users stanza.
+9. docker run -d -name "index_redis" dockerfile/redis
+10. docker run -d -name "docker_registry" -p 5000:5000 -e SETTINGS\_FLAVOR=prod -v /data/registry/config:/docker-registry/config
+11. docker run -d -name "docker_index" -p 5100:5100 -e REGISTRIES=hostname.to.registry -link redis:index\_redis -v /data/index/config:/opt/app/config docker\_index
 
-You can modify the app.js to use HTTPS, or you can put this behind nginx or some other reverse proxy that support HTTPS.
+I'd suggest that you front both the index and the registry using nginx and SSL/TLS and use port 443.
 
 ## How to add Users
 
 Did you remember that is just alpha software? :) 
 
-Line 28 adds a user each time the app starts, or rather overwrites the user:testing value, you can edit it, the format is pretty simple.
+Edit local-docker.js to add your users and permissions. 
 
-user: testing
-pass: testing
+`docker run docker_index updateusers.js`
 
-```
-{
-  email: 'testing@testing.com',
-  password: 'SHA1-HASH',
-  permissions: {
-    'namespace': '(admin|write|read)',
-    'namespace/repository': '(admin|write|read)'
-  }
-}
-```
-
-There are plans to change this eventually. Again Alpha Software.
+This will update the users. This is a temporary measure. I really want to have a UI that allows you to manage accounts. 
 
 ## Todo
 
 1. Create Admin Portal
-2. Add SSL Support

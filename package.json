@@ -10,6 +10,8 @@
     "jade": "*",
     "config": "*",
     "winston": "*",
-    "connect-redis": "*"
+    "connect-redis": "*",
+    "redis": "*",
+    "async": "~0.2.10"
   }
 }

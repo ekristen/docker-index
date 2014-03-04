@@ -13,6 +13,9 @@ var redisStore = require('connect-redis')(express);
 
 var redis = require('redis').createClient(config.redis.port, config.redis.host);
 
+// Update Users 
+require('./updateusers.js');
+
 var logger = new (winston.Logger)({
   transports: [
     new (winston.transports.Console)({timestamp: true}),
@@ -24,8 +27,6 @@ var loggingStream = {
     logger.info(message);
   }
 };
-
-redis.set("user:testing", JSON.stringify({password: "dc724af18fbdd4e59189f5fe768a5f8311527050", permissions: { "testing": "admin" }}));
 
 var app = express();
 
@@ -333,17 +334,9 @@ function repoDelete(req, res, next) {
     
 }
 
-// User Repo
-app.put('/v1/repositories/:namespace/:repo', requireAuth, repoGet);
-app.del('/v1/repositories/:namespace/:repo', requireAuth, repoDelete);
-
 // Library Repo
 app.put('/v1/repositories/:repo', requireAuth, repoGet);
 app.del('/v1/repositories/:repo', requireAuth, repoDelete);
-
-// User Repo Images
-app.put('/v1/repositories/:namespace/:repo/images', requireAuth, repoImagesPut);
-app.get('/v1/repositories/:namespace/:repo/images', requireAuth, repoImagesGet);
 
 // Library Repo Images
 app.put('/v1/repositories/:repo/images', requireAuth, repoImagesPut);
@@ -351,6 +344,14 @@ app.get('/v1/repositories/:repo/images', requireAuth, repoImagesGet);
 
 // Library Repo Auth
 app.put('/v1/repositories/:repo/auth', requireAuth, ok);
+
+// User Repo
+app.put('/v1/repositories/:namespace/:repo', requireAuth, repoGet);
+app.del('/v1/repositories/:namespace/:repo', requireAuth, repoDelete);
+
+// User Repo Images
+app.put('/v1/repositories/:namespace/:repo/images', requireAuth, repoImagesPut);
+app.get('/v1/repositories/:namespace/:repo/images', requireAuth, repoImagesGet);
 
 // User Repo Auth
 app.put('/v1/repositories/:namespace/:repo/auth', requireAuth, ok);
@@ -366,6 +367,10 @@ app.get('/v1/search', function(req, res, next) {
 });
 
 // Ping
+app.get('/v1', function(req, res, next) {
+	res.setHeader('X-Docker-Registry-Version', '0.6.5');
+	res.send(200);
+});
 app.get('/v1/_ping', function(req, res, next) {
   res.setHeader('X-Docker-Registry-Version', '0.6.5');
   res.send(200);
