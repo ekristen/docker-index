@@ -48,6 +48,11 @@ app.use(express.session({
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Most of the time the index is going to behind a proxy
+// so we want to trust it so we get the real client ip in
+// the index logs
+app.enable('trust proxy');
+
 // development only
 if ('development' == app.get('env')) {
   app.use(express.errorHandler());
