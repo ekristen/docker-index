@@ -204,7 +204,7 @@ function createUser(req, res, next) {
       return res.send(500, err);
     }
 
-    var user = value || {};
+    var user = JSON.parse(value) || {};
 
     var shasum = crypto.createHash("sha1");
     shasum.update(req.body.password);
@@ -229,7 +229,7 @@ function updateUser(req, res, next) {
       return res.send(500, err);
     }
 
-    var user = value || {};
+    var user = JSON.parse(value) || {};
 
     var shasum = crypto.createHash("sha1");
     shasum.update(req.body.password);
