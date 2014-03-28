@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "test": "nodeunit ./test"
   },
   "dependencies": {
     "express": "3.4.8",
@@ -12,6 +13,15 @@
     "winston": "*",
     "connect-redis": "*",
     "redis": "*",
-    "async": "~0.2.10"
+    "async": "~0.2.10",
+    "restify": "git+https://github.com/ekristen/node-restify.git",
+    "restify-endpoints": "git+https://github.com/ekristen/restify-endpoints.git"
+  },
+  "devDependencies": {
+    "nodeunit": "*",
+    "supertest": "*",
+    "redis-mock": "*",
+    "domain": "*",
+    "once": "*"
   }
 }

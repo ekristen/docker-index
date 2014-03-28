@@ -9,6 +9,6 @@ module.exports = {
   loglevel: 'debug',
   registries: [
     // format: hostname [, hostname, hostname, hostname]
-    '192.168.1.114:5000'
+    '192.168.1.100:5000'
   ]
 }

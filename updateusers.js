@@ -5,9 +5,11 @@ var async = require('async');
 async.series([
   function(cb) {
     redis.smembers('users', function(err, users) {
-      for (var i = 0; i < users.length; i++) {
-        redis.del('user:' + users[i]);
-        redis.srem('users', users[i]);
+      if (typeof(users) != "undefined") {
+        for (var i = 0; i < users.length; i++) {
+          redis.del('user:' + users[i]);
+          redis.srem('users', users[i]);
+        }
       }
       
       cb(null);

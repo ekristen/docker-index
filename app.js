@@ -8,81 +8,71 @@ var http = require('http');
 var path = require('path');
 var crypto = require('crypto');
 var fs = require('fs');
-var winston = require('winston');
-var redisStore = require('connect-redis')(express);
+var restify = require('restify');
+var bunyan = require('bunyan');
+var restify_endpoints = require('restify-endpoints');
 
 var redis = require('redis').createClient(config.redis.port, config.redis.host);
+
+var helpers = require('./lib/helpers')(redis);
+var users = require('./lib/users')(redis);
+
+var endpoints = new restify_endpoints.EndpointManager({
+  endpointpath: __dirname + '/endpoints',
+  endpoint_args: [
+    redis
+  ]
+  
+});
+
+var logger = {
+  debug: function(msg) {
+    console.log(msg)
+  }
+};
 
 // Update Users 
 require('./updateusers.js');
 
-var logger = new (winston.Logger)({
-  transports: [
-    new (winston.transports.Console)({timestamp: true}),
-  ]
+var server = restify.createServer({
+  name: 'myapp',
+  version: '1.0.0'
 });
-
-var loggingStream = {
-  write: function(message, encoding) {
-    logger.info(message);
-  }
-};
-
-var app = express();
-
-// all environments
-app.set('port', config.app.port);
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-app.use(express.favicon());
-app.use(express.logger({stream:loggingStream, format: 'short'}));
-app.use(express.json());
-app.use(express.urlencoded());
-app.use(express.methodOverride());
-app.use(express.cookieParser());
-app.use(express.session({
-  secret: 'abc123',
-  maxAge: Date.now() + 7200000,
-  store: new redisStore({client: redis})
+server.use(restify.acceptParser(server.acceptable));
+server.use(restify.queryParser());
+server.use(restify.bodyParser({
+  mapParams: false,
+  overrideParams: false
 }));
-app.use(app.router);
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Most of the time the index is going to behind a proxy
-// so we want to trust it so we get the real client ip in
-// the index logs
-app.enable('trust proxy');
+server.on('after', restify.auditLogger({
+  log: bunyan.createLogger({
+    name: 'audit',
+    stream: process.stdout
+  })
+}));
 
-// development only
-if ('development' == app.get('env')) {
-  app.use(express.errorHandler());
-}
 
-// generate authorization token
-function generateToken(repo, access, cb) {
-  var shasum = crypto.createHash('sha1');
-  shasum.update(Math.random().toString(36));
-  shasum.update(Math.random().toString(36));
-  shasum.update(Math.random().toString(36));
+function requireBasicAuth(req, res, next) {
+  if (!req.headers.authorization) {
+    res.send(401, 'authorization required');
+    return next();
+  }
+
+  if (!req.params.namespace)
+    req.params.namespace = 'library';
+
+  var auth = req.headers.authorization.split(' ');
   
-  var sha1 = shasum.digest('hex');
-
-  logger.debug('token: ' + sha1);
-
-  redis.set("token:" + sha1, JSON.stringify({repo: repo, access: access}), function(err, status) {
-    // TODO: better way to do this?
-    // Set a 10 minute expiration, 10 minutes should be enough time to download images
-    // in the case of a slow internet connection, this could be a problem, but we do not
-    // want unused tokens remaining in the system either
-    redis.expire("token:" + sha1, 600, function(err, status) {
-      cb(sha1);
-    });
-  });
+  console.log(auth);
+  return next();
 }
 
 function requireAuth(req, res, next) {
-  if (!req.headers.authorization)
-    return res.send(401, 'authorization required');
+  if (!req.headers.authorization) {
+    res.send(401, 'authorization required');
+    return next();
+  }
 
   if (!req.params.namespace)
     req.params.namespace = 'library';
@@ -101,11 +91,15 @@ function requireAuth(req, res, next) {
     var sha1pwd = shasum.digest('hex');
 
     redis.get("user:" + user, function(err, value) {
-      if (err)
-        return res.send(500, err);
+      if (err) {
+        res.send(500, err);
+        return next();
+      }
 
-      if (value == null)
-        return res.send(403, 'access denied')
+      if (value == null) {
+        res.send(403, 'access denied')
+        return next();
+      }
         
       value = JSON.parse(value);
 
@@ -115,26 +109,30 @@ function requireAuth(req, res, next) {
         req.username = user;
         req.namespace = req.params.namespace;
         req.repo = repo;
-        
+
         // Check for repo permissions
         req.permission = value.permissions[repo] || 'none';
         // Check for namespace permissions
         req.permission = value.permissions[req.params.namespace] || 'none';
 
         if (req.permission == "none") {
-          return res.send(403, 'access denied');
+          res.send(403, 'access denied');
+          return next();
         }
 
         if (req.method == 'GET' && req.permission != "read" && req.permission != "write" && req.permission != "admin") {
-          return res.send(403, "access denied");
+          res.send(403, "access denied");
+          return next();
         }
       
         if (req.method == "PUT" && req.permission != "write" && req.permission != "admin") {
-          return res.send(403, "access denied");
+          res.send(403, "access denied");
+          return next();
         }
       
         if (req.method == "DELETE" && req.permission != "delete" && req.permission != "admin") {
-          return res.send(403, "access denied");
+          res.send(403, "access denied");
+          return next();
         }
 
         var access = "none";
@@ -150,10 +148,10 @@ function requireAuth(req, res, next) {
             break;
         }
 
-        generateToken(repo, access, function(token) {
+        helpers.generateToken(repo, access, function(err, token) {
           var repo = req.params.namespace + '/' + req.params.repo;
           var token = 'signature=' + token + ', repository="' + repo + '", access=' + access;
-          logger.debug('token: ' + token);
+
           res.setHeader('WWW-Authenticate', 'Token ' + token);
           res.setHeader('X-Docker-Token', token)
           res.setHeader('X-Docker-Endpoints', config.registries);
@@ -163,6 +161,7 @@ function requireAuth(req, res, next) {
       }
       else {
         res.send(401, 'Authorization required');
+        return next();
       }
     });
   }
@@ -175,8 +174,10 @@ function requireAuth(req, res, next) {
     var access = matches[2].split('=')[1];
 
     redis.get("token:" + sig, function(err, value) {
-      if (err)
-        return res.send(500, err);
+      if (err) {
+        res.send(500, err);
+        return next();
+      }
 
       value = JSON.parse(value);
       
@@ -184,14 +185,16 @@ function requireAuth(req, res, next) {
 
       redis.del("token:" + sig, function (err) {
         if (err) {
-          return res.send(500, err);
+          res.send(500, err);
+          return next();
         }
 
         if (value.repo == repo && value.access == access) {
           return next();
         }
         else {
-            res.send(401, 'Authorization required');
+          res.send(401, 'Authorization required');
+          return next();
         }
       });
       
@@ -201,37 +204,56 @@ function requireAuth(req, res, next) {
 
 function ok(req, res, next) {
   res.send(200);
+  return next();
 }
 
+/*
 function createUser(req, res, next) {
   redis.get("user:" + req.body.username, function(err, value) {
     if (err) {
-      return res.send(500, err);
+      res.send(500, err);
+      return next();
     }
 
     var user = JSON.parse(value) || {};
 
+    // Check to make sure a user was found.
+    if (user.length == 0) {
+      res.send(403, "bad username and/or password (1)");
+      return next();
+    }
+
     var shasum = crypto.createHash("sha1");
     shasum.update(req.body.password);
     var sha1 = shasum.digest("hex");
+
+    // Check to make sure the password is valid.
+    if (user.password != sha1) {
+      res.send(403, "bad username and/or password (2)");
+      return next();
+    }
 
     user.password = sha1;
     user.email = req.body.email;
 
     redis.set("user:" + req.body.username, JSON.stringify(user), function(err, status) {
       if (err) {
-        return res.send(500, err);
+        res.send(500, err);
+        return next();
       }
 
       res.send(201);
+      return next();
     });
   });
 }
+*/
 
 function updateUser(req, res, next) {
   redis.get("user:" + req.params.username, function(err, value) {
     if (err) {
-      return res.send(500, err);
+      res.send(500, err);
+      return next();
     }
 
     var user = JSON.parse(value) || {};
@@ -245,10 +267,12 @@ function updateUser(req, res, next) {
 
     redis.set("_user_" + req.params.username, JSON.stringify(user), function(err, status) {
       if (err) {
-        return res.send(500, err);
+        res.send(500, err);
+        return next();
       }
     
       res.send(204);
+      return next();
     });
   });
 }
@@ -261,6 +285,7 @@ function repoImagesPut(req, res, next) {
   logger.debug('repoImagesPut - namespace: ' + req.params.namespace + ', repo: ' + req.params.repo);
 
   res.send(204);
+  return next();
 }
 
 function repoImagesGet(req, res, next) { 
@@ -269,10 +294,12 @@ function repoImagesGet(req, res, next) {
 
   redis.get("images:" + req.params.namespace + '_' + req.params.repo, function(err, value) {
     if (err) {
-      return res.send(500, err);
+      res.send(500, err);
+      return next();
     }
 
-    res.send(200, value || {});
+    res.send(200, JSON.parse(value) || {});
+    return next();
   });
 }
 
@@ -281,12 +308,14 @@ function repoGet(req, res, next) {
     req.params.namespace = 'library';
 
   if (req.permission != 'admin' && req.permission != 'write') {
-    return res.send(403, 'access denied');
+    res.send(403, 'access denied');
+    return next();
   }
 
   redis.get('images:' + req.params.namespace + '_' + req.params.repo, function(err, value) {
     if (err) {
-      return res.send(500, err);
+      res.send(500, err);
+      return next();
     }
 
     var images = [];
@@ -322,10 +351,12 @@ function repoGet(req, res, next) {
     
     redis.set('images:' + req.params.namespace + '_' + req.params.repo, JSON.stringify(images), function(err, status) {
       if (err) {
-        return res.send(500, err);
+        res.send(500, err);
+        return next();
       }
 
       res.send(200, "")
+      return next();
     })
   });
 }
@@ -336,52 +367,56 @@ function repoDelete(req, res, next) {
 
   if (req.permission != 'admin')
     return res.send(403, 'access denied');
-    
 }
 
 // Library Repo
-app.put('/v1/repositories/:repo', requireAuth, repoGet);
-app.del('/v1/repositories/:repo', requireAuth, repoDelete);
+server.put('/v1/repositories/:repo', requireAuth, repoGet);
+server.del('/v1/repositories/:repo', requireAuth, repoDelete);
 
 // Library Repo Images
-app.put('/v1/repositories/:repo/images', requireAuth, repoImagesPut);
-app.get('/v1/repositories/:repo/images', requireAuth, repoImagesGet);
+server.put('/v1/repositories/:repo/images', requireAuth, repoImagesPut);
+server.get('/v1/repositories/:repo/images', requireAuth, repoImagesGet);
 
 // Library Repo Auth
-app.put('/v1/repositories/:repo/auth', requireAuth, ok);
+server.put('/v1/repositories/:repo/auth', requireAuth, ok);
 
 // User Repo
-app.put('/v1/repositories/:namespace/:repo', requireAuth, repoGet);
-app.del('/v1/repositories/:namespace/:repo', requireAuth, repoDelete);
+server.put('/v1/repositories/:namespace/:repo', requireAuth, repoGet);
+server.del('/v1/repositories/:namespace/:repo', requireAuth, repoDelete);
 
 // User Repo Images
-app.put('/v1/repositories/:namespace/:repo/images', requireAuth, repoImagesPut);
-app.get('/v1/repositories/:namespace/:repo/images', requireAuth, repoImagesGet);
+server.put('/v1/repositories/:namespace/:repo/images', requireAuth, repoImagesPut);
+server.get('/v1/repositories/:namespace/:repo/images', requireAuth, repoImagesGet);
 
 // User Repo Auth
-app.put('/v1/repositories/:namespace/:repo/auth', requireAuth, ok);
+server.put('/v1/repositories/:namespace/:repo/auth', requireAuth, ok);
 
 // Users
-app.get('/v1/users', requireAuth, ok);
-app.post('/v1/users', createUser);
-app.put('/v1/users/:username', requireAuth, updateUser);
+server.get('/v1/users', requireAuth, ok);
+server.post('/v1/users', users.createUser);
+server.put('/v1/users/:username', requireAuth, updateUser);
 
 // Search
-app.get('/v1/search', function(req, res, next) {
-  res.send(404);
+server.get('/v1/search', function(req, res, next) {
+  res.send(501);
+  next();
 });
 
 // Ping
-app.get('/v1', function(req, res, next) {
+server.get('/v1', function(req, res, next) {
 	res.setHeader('X-Docker-Registry-Version', '0.6.5');
 	res.send(200);
+  next();
 });
-app.get('/v1/_ping', function(req, res, next) {
+server.get('/v1/_ping', function(req, res, next) {
   res.setHeader('X-Docker-Registry-Version', '0.6.5');
   res.send(200);
+  next();
 });
 
+endpoints.attach(server);
+
 // Listen
-http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
+server.listen(5100, function () {
+  console.log('%s listening at %s', server.name, server.url);
 });
