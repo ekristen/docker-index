@@ -15,7 +15,7 @@
     "redis": "*",
     "async": "~0.2.10",
     "restify": "git+https://github.com/ekristen/node-restify.git",
-    "restify-endpoints": "git+https://github.com/ekristen/restify-endpoints.git"
+    "restify-endpoints": "git+https://github.com/ekristen/restify-endpoints.git#dev"
   },
   "devDependencies": {
     "nodeunit": "*",
