@@ -2,6 +2,13 @@ This is Alpha software. If you want to help, let me know.
 
 This is a functioning Docker Index that can be run independent of the Docker Registry software.
 
+# Important
+I just re-factored this entire application from Express.JS to Restify. I also implemented an endpoint manager (Restify Endpoints). Everything should be backwards compatible, but if you are running into issues please make sure to let me know and if you are looking for the original code, check out the v1.0 tag.
+
+I'm in the process of writing unit tests, and better documentation. I'm also working on writing API endpoints to facilitate the creation and management of user accounts too, so check by.
+
+The documentation below should still be accurate, but if you run into issues, please let me know.
+
 ## Requirements 
 
 1. Docker
@@ -36,7 +43,3 @@ Edit local-docker.js to add your users and permissions.
 `docker run docker_index updateusers.js`
 
 This will update the users. This is a temporary measure. I really want to have a UI that allows you to manage accounts. 
-
-## Todo
-
-1. Create Admin Portal
