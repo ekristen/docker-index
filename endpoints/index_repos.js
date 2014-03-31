@@ -9,9 +9,9 @@ module.exports = function(redis) {
     description: 'Endpoints for Repository Interaction',
     endpoints: [
       {
-        name: 'getLibraryRepo',
+        name: 'putLibraryRepo',
         description: 'Get Library Repository',
-        method: 'GET',
+        method: 'PUT',
         path: [
           '/v1/repositories/:repo',
           '/v1/repositories/:namespace/:repo'

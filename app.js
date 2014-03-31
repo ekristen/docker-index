@@ -19,14 +19,18 @@ var server = restify.createServer({
   name: 'docker-index',
   version: '1.0.0'
 });
+
+// Basic Restify Middleware
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
+
 // Important so that application/json does not override
 // parameters passed via the url.
 server.use(restify.bodyParser({
   mapParams: false,
   overrideParams: false
 }));
+
 // Audit logging to stdout
 server.on('after', restify.auditLogger({
   log: bunyan.createLogger({
@@ -42,6 +46,6 @@ endpoints.attach(server);
 require('./updateusers.js');
 
 // Listen
-server.listen(5100, function () {
+server.listen(config.app.port, function () {
   console.log('%s listening at %s', server.name, server.url);
 });
