@@ -3,6 +3,8 @@ var restify = require('restify');
 var bunyan = require('bunyan');
 var restify_endpoints = require('restify-endpoints');
 
+var logger = bunyan.createLogger({name: 'docker-index'});
+
 // Setup Redis Connection
 var redis = require('redis').createClient(config.redis.port, config.redis.host);
 
@@ -10,7 +12,8 @@ var redis = require('redis').createClient(config.redis.port, config.redis.host);
 var endpoints = new restify_endpoints.EndpointManager({
   endpointpath: __dirname + '/endpoints',
   endpoint_args: [
-    redis
+    redis,
+    logger
   ]
 });
 

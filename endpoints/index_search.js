@@ -1,6 +1,6 @@
 // TODO: implement
 
-module.exports = function(redis) {
+module.exports = function(redis, logger) {
 
   var endpoints = {
     name: 'Index Search',

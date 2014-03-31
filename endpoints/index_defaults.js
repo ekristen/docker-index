@@ -1,5 +1,5 @@
 
-module.exports = function(redis) {
+module.exports = function(redis, logger) {
 
   var endpoints = {
     name: 'Docker Index -- Default Routes',
@@ -14,6 +14,7 @@ module.exports = function(redis) {
         path: '/v1',
         version: '1.0.0',
         fn: function(req, res, next) {
+          // TODO: pass through to the actual registry??
     	    res.setHeader('X-Docker-Registry-Version', '0.6.5');
     	    res.send(200);
           next();
@@ -28,6 +29,7 @@ module.exports = function(redis) {
         path: '/v1/_ping',
         version: '1.0.0',
         fn: function(req, res, next) {
+          // TODO: pass through to the actual registry??
     	    res.setHeader('X-Docker-Registry-Version', '0.6.5');
     	    res.send(200);
           next();

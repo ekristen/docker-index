@@ -1,8 +1,8 @@
 
-module.exports = function(redis) {
+module.exports = function(redis, logger) {
   var index_helpers = require('../lib/helpers.js')(redis);
-  var index_middleware = require('../lib/middleware.js')(redis);
-  var index_users = require('../lib/users.js')(redis);
+  var index_middleware = require('../lib/middleware.js')(redis, logger);
+  var index_users = require('../lib/users.js')(redis, logger);
 
   var endpoints = {
     name: 'Users',
