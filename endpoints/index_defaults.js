@@ -16,7 +16,7 @@ module.exports = function(redis) {
         fn: function(req, res, next) {
     	    res.setHeader('X-Docker-Registry-Version', '0.6.5');
     	    res.send(200);
-          return next();
+          next();
         }
       },
 
@@ -25,12 +25,12 @@ module.exports = function(redis) {
         description: 'Docker Index -- Ping',
         method: 'GET',
         auth: false,
-        path: '/v1/ping',
+        path: '/v1/_ping',
         version: '1.0.0',
         fn: function(req, res, next) {
     	    res.setHeader('X-Docker-Registry-Version', '0.6.5');
     	    res.send(200);
-          return next();
+          next();
         }
       }
 
