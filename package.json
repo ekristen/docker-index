@@ -7,15 +7,12 @@
     "test": "nodeunit ./test"
   },
   "dependencies": {
-    "express": "3.4.8",
-    "jade": "*",
-    "config": "*",
-    "winston": "*",
-    "connect-redis": "*",
-    "redis": "*",
-    "async": "~0.2.10",
     "restify": "git+https://github.com/ekristen/node-restify.git",
-    "restify-endpoints": "git+https://github.com/ekristen/restify-endpoints.git#dev"
+    "restify-endpoints": "git+https://github.com/ekristen/restify-endpoints.git#dev",
+    "bunyan": "~0.22.1",
+    "async": "~0.6.1",
+    "config": "~0.4.35",
+    "redis": "~0.10.1"
   },
   "devDependencies": {
     "nodeunit": "*",
