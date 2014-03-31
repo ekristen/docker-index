@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ekristen/docker-index.png)](https://travis-ci.org/ekristen/docker-index)
+
 This is Alpha software. If you want to help, let me know.
 
 This is a functioning Docker Index that can be run independent of the Docker Registry software.
