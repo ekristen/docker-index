@@ -14,7 +14,7 @@ The documentation below should still be accurate, but if you run into issues, pl
 ## Requirements 
 
 1. Docker
-2. Redis
+2. Redis (this stores image and user information, you should run redis in a persistent mode that will meet your needs)
 
 ## How to Use
 
