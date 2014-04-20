@@ -12,6 +12,7 @@ var logger = {
   error: function() { }
 }
 
+/*
 exports.setUp = function(done) {
   this.r = redis.createClient();
   this.users = require('../internal/users.js')(this.r, logger);
@@ -20,14 +21,19 @@ exports.setUp = function(done) {
     version: '1.0.0'
   });
 
-  done();
+  this.app.listen(9999, function () {
+    done();
+  });
 }
 
 exports.tearDown = function(done) {
   this.r.end();
-  done();
+  this.app.close(function() {
+    done();
+  })
 }
 
 exports.createUser = function(test) {
-  request(this.app).post('/user')
+
 };
+*/
