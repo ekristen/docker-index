@@ -11,7 +11,7 @@ redis._toggleExpireCheck = function () {}
 
 var client = redis.createClient();
 
-var users = require('../lib/users')(client);
+var users = require('../index/users')(client);
 
 var SERVER;
 var STR_CLIENT;

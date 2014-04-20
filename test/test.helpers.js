@@ -9,7 +9,7 @@ redis._toggleExpireCheck = function () {}
 
 exports.setUp = function(done) {
   this.r = redis.createClient();
-  this.helpers = require('../lib/helpers.js')(this.r);
+  this.helpers = require('../index/helpers.js')(this.r);
   done();
 }
 
