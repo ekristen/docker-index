@@ -12,6 +12,8 @@ module.exports = function(config, redis, logger) {
       var auth = req.headers.authorization.split(' ');
 
       if (auth[0] == 'Basic') {
+        req.authmethod = 'basic';
+
         var buff  = new Buffer(auth[1], 'base64');
         var plain = buff.toString();
         var creds = plain.split(':');
@@ -52,6 +54,24 @@ module.exports = function(config, redis, logger) {
             res.send(401, 'Authorization required');
             return next();
           }
+        });
+      }
+      else if (auth[0] == 'Token' && req.url == '/users') {
+        req.authmethod = 'token';
+
+        redis.get('_initial_auth_token', function(err, value) {
+          if (err) {
+            logger.error({err: err, user: user});
+            res.send(500, err);
+            return next();
+          }
+
+          if (value == auth[1]) {
+            return next();
+          }
+          
+          res.send(403, {message: 'access denied (4)'});
+          return next();
         });
       }
       else {

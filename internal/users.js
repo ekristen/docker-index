@@ -118,7 +118,7 @@ module.exports = function(redis, logger) {
         password: sha1pwd,
         email: req.body.email,
         permissions: {},
-        admin: false
+        admin: req.body.admin || false
       };
 
       redis.set('user:' + req.body.username, JSON.stringify(userObj), function(err) {
@@ -133,6 +133,10 @@ module.exports = function(redis, logger) {
             logger.error({err: err}, "Redis Error -- Unable to Set Key");
             res.send(500, {err: err});
             return next();
+          }
+
+          if (req.authmethod == 'token') {
+            redis.del('_initial_auth_token', function(err) {})
           }
 
           res.send(201, {message: "account created", user: req.body.username});

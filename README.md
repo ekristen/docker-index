@@ -5,18 +5,20 @@ This is Alpha software. If you want to help, let me know.
 This is a functioning Docker Index that can be run independent of the Docker Registry software.
 
 # Important
-I just re-factored this entire application from Express.JS to Restify. I also implemented an endpoint manager (Restify Endpoints). Everything should be backwards compatible, but if you are running into issues please make sure to let me know and if you are looking for the original code, check out the v1.0 tag.
-
 I'm in the process of writing unit tests, and better documentation. I'm also working on writing API endpoints to facilitate the creation and management of user accounts too, so check by.
 
 The documentation below should still be accurate, but if you run into issues, please let me know.
 
+# New Command Line Tool
+With the latest code in master, there is now a command line tool that accompanies this index. https://github.com/ekristen/docker-index-cli The purpose of this tool is to easy the administration burden of the index. See https://github.com/ekristen/docker-index-cli/blob/master/README.md for more information.
+
 ## Requirements 
 
 1. Docker
-2. Redis (this stores image and user information, you should run redis in a persistent mode that will meet your needs)
+2. Docker Registry
+3. Redis (this stores image and user information, you should run redis in a persistent mode that will meet your needs)
 
-## How to Use
+## Installation
 
 The best way to do this is to use docker all the way and to use host mounted volumes for configuration files OR build each app by checking out the code and changing the configuration files.
 
@@ -36,12 +38,12 @@ The best way to do this is to use docker all the way and to use host mounted vol
 
 I'd suggest that you front both the index and the registry using nginx and SSL/TLS and use port 443.
 
-## How to add Users
+## Management
 
-Did you remember that is just alpha software? :) 
+All management is done via the new command line tool over at https://github.com/ekristen/docker-index-cli
 
-Edit local-docker.js to add your users and permissions. 
+### Initial Admin Account
 
-`docker run docker_index updateusers.js`
+When you start the docker index up for the first time a authorization token will be output to standard out, with this token you can create your first admin account. The token expires automatically after 30 minutes or after the first use when adding a user to the system. The token can only be used to add a user.
 
-This will update the users. This is a temporary measure. I really want to have a UI that allows you to manage accounts. 
+`docker-index adduser --username="admin" --password="admin" --email="admin@localhost" --admin --token="TOKEN"`
