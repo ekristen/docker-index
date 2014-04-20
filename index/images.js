@@ -24,8 +24,32 @@ module.exports = function(redis, logger) {
       if (!req.params.namespace)
         req.params.namespace = 'library';
 
-      res.send(204);
-      return next();
+      var name = req.params.namespace + '_' + req.params.repo;
+
+      redis.sismember('images', name, function(err, status) {
+        if (err) {
+          logger.error({err: err, function: "repoImagesPut:sismember"});
+          res.send(500, err);
+          return next();
+        }
+        
+        if (status == 0) {
+          redis.sadd('images', name, function(err) {
+            if (err) {
+              logger.error({err: err, function: "repoImagesPut:sadd"});
+              res.send(500, err);
+              return next();
+            }
+
+            res.send(204);
+            return next();
+          });
+        }
+        else {
+          res.send(204);
+          return next();
+        }
+      })
     }
     
   } // end return

@@ -1,5 +1,5 @@
 
-module.exports = function(redis, logger) {
+module.exports = function(config, redis, logger) {
 
   var endpoints = {
     name: 'Docker Index -- Default Routes',

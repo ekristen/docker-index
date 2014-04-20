@@ -1,8 +1,8 @@
 
-module.exports = function(redis, logger) {
-  var index_helpers = require('../lib/helpers.js')(redis);
-  var index_middleware = require('../lib/middleware.js')(redis, logger);
-  var index_images = require('../lib/images.js')(redis, logger);
+module.exports = function(config, redis, logger) {
+  var index_helpers = require('../index/helpers.js')(redis);
+  var index_middleware = require('../index/middleware.js')(config, redis, logger);
+  var index_images = require('../index/images.js')(redis, logger);
 
   var endpoints = {
     name: 'Index Repositories Endpoints',

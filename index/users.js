@@ -1,6 +1,6 @@
 var crypto = require('crypto');
 
-module.exports = function(redis) {
+module.exports = function(redis, logger) {
   return {
     createUser: function (req, res, next) {
       redis.get("user:" + req.body.username, function(err, value) {

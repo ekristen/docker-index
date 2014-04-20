@@ -1,7 +1,6 @@
 var crypto = require('crypto');
-var config = require('config');
 
-module.exports = function(redis, logger) {
+module.exports = function(config, redis, logger) {
   var index_helpers = require('./helpers.js')(redis);
 
   return {

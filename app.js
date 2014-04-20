@@ -15,10 +15,7 @@ var redis = require('redis').createClient(config.redis.port, config.redis.host);
 // Setup Restify Endpoints
 var endpoints = new restify_endpoints.EndpointManager({
   endpointpath: __dirname + '/endpoints',
-  endpoint_args: [
-    redis,
-    logger
-  ]
+  endpoint_args: [config, redis, logger]
 });
 
 // Create our Restify server
@@ -48,9 +45,6 @@ server.on('after', restify.auditLogger({
 
 // Attach our endpoints
 endpoints.attach(server);
-
-// TODO: REMOVE!!! -- Update Users 
-require('./updateusers.js');
 
 // Listen
 server.listen(config.app.port, function () {
