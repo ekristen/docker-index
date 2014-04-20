@@ -1,6 +1,7 @@
 {
   "name": "docker-index",
   "version": "0.0.1",
+  "license": "LICENSE.md",
   "private": true,
   "scripts": {
     "start": "node app.js",
