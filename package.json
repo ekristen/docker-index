@@ -1,7 +1,7 @@
 {
   "name": "docker-index",
   "version": "1.2.0",
-  "author": "Erik Kristensen <erik@erikkristensen.com>"
+  "author": "Erik Kristensen <erik@erikkristensen.com>",
   "license": "LICENSE.md",
   "private": true,
   "scripts": {
