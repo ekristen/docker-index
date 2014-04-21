@@ -47,3 +47,14 @@ All management is done via the new command line tool over at https://github.com/
 When you start the docker index up for the first time a authorization token will be output to standard out, with this token you can create your first admin account. The token expires automatically after 30 minutes or after the first use when adding a user to the system. The token can only be used to add a user.
 
 `docker-index adduser --username="admin" --password="admin" --email="admin@localhost" --admin --token="TOKEN"`
+
+
+## Access Levels (Permissions)
+
+There are four access levels (aka permissions) for a namespace and/or repo combination. They are `read`, `write`, `readwrite` `admin`.
+
+* **read** is pretty self explanatory, gives the user full read access to the namespace and/or namespace repo combo.
+* **write** gives a user write access only, this is useful for automation scripts that you want to only have access to upload to a repo.
+* **readwrite** gives a user read and write access.
+* **admin** gives a user read, write, and delete (not implemented) access to a namespace and/or namespace/repo.
+
