@@ -1,7 +1,7 @@
 FROM ubuntu:12.04
 MAINTAINER Erik Kristensen <erik@erikkristensen.com>
 
-RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
+RUN sed 's/main$/main universe/' -i /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get -y install python-software-properties build-essential git
 RUN add-apt-repository -y ppa:chris-lea/node.js
