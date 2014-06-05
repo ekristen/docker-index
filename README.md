@@ -34,7 +34,7 @@ The best way to do this is to use docker all the way and to use host mounted vol
 8. Edit local-docker.js to update users stanza.
 9. docker run -d -name "index_redis" dockerfile/redis
 10. docker run -d -name "docker_registry" -p 5000:5000 -e SETTINGS\_FLAVOR=prod -v /data/registry/config:/docker-registry/config
-11. docker run -d -name "docker_index" -p 5100:5100 -e REGISTRIES=hostname.to.registry -link redis:index\_redis -v /data/index/config:/opt/app/config docker\_index
+11. docker run -d -name "docker_index" -p 5100:5100 -e REGISTRIES=hostname.to.registry --link index\_redis:redis -v /data/index/config:/opt/app/config docker\_index
 
 I'd suggest that you front both the index and the registry using nginx and SSL/TLS and use port 443.
 
