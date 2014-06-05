@@ -18,38 +18,43 @@ module.exports = function(redis, logger) {
           return next();
         }
 
-        var images = [];
+        var images = {};
 
         if (value == null)
           var value = []
         else
           var value = JSON.parse(value);
-    
-        for (var i = 0; i<value.length; i++) {
-          var found = false;
-          for (var j = 0; j<images.length; j++) {
-            if (images[j].id == value[i].id) {
-              found = true;
-            }
+
+        var data = value.concat(req.body);
+
+        for (var x = 0; x<data.length; x++) {
+          var i = data[x];
+          var iid = i['id'];
+
+          if (typeof(images[iid]) !== "undefined" && typeof(images[iid]['checksum']) !== "undefined")
+            continue;
+
+          i_data = {'id': iid};
+
+          // check if checksum is set
+          if (typeof(i['checksum']) !== "undefined") {
+            i_data['checksum'] = i['checksum'];
           }
-    
-          if (found === false)
-            images.push(value[i])
+
+          // check if tag is set
+          if (typeof(i['Tag']) !== "undefined") {
+            i_data['Tag'] = i['Tag'];
+          }
+
+          images[iid] = i_data;
         }
 
-        for (var i = 0; i<req.body.length; i++) {
-          var found = false;
-          for (var j = 0; j<images.length; j++) {
-            if (images[j].id == req.body[i].id) {
-              found = true;
-            }
-          }
-    
-          if (found === false)
-            images.push(req.body[i])
+        var final_images = [];
+        for (var key in images) {
+          final_images.push(images[key]);
         }
     
-        redis.set('images:' + req.params.namespace + '_' + req.params.repo, JSON.stringify(images), function(err, status) {
+        redis.set('images:' + req.params.namespace + '_' + req.params.repo, JSON.stringify(final_images), function(err, status) {
           if (err) {
             logger.error({err: err, type: 'redis', namespace: req.params.namespace, repo: req.params.repo});
             res.send(500, err);
