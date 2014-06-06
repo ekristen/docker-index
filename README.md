@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/ekristen/docker-index.png)](https://travis-ci.org/ekristen/docker-index)
 
+**Version 1.2.1 released June 5th** -- fixes bug with tags not being updated properly. You'll need to repush all your images. Basically the docker client will say that all images exist, unless you have new ones, but there is a list of images the client sends at the end that will be re-processed and update the index manifest properly.
+
 This is Alpha software. If you want to help, let me know.
 
 This is a functioning Docker Index that can be run independent of the Docker Registry software.
