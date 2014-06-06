@@ -15,6 +15,8 @@ module.exports = function(config, redis, logger) {
 
       var auth = req.headers.authorization.split(' ');
 
+      logger.debug({headers: req.headers});
+
       if (auth[0] == 'Basic') {
         var buff  = new Buffer(auth[1], 'base64');
         var plain = buff.toString();
