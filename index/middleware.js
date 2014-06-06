@@ -34,6 +34,7 @@ module.exports = function(config, redis, logger) {
           }
 
           if (value == null) {
+            logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: user not found'});
             res.send(403, 'access denied (1)')
             return next();
           }
@@ -58,21 +59,25 @@ module.exports = function(config, redis, logger) {
             req.permission = value.permissions[req.params.namespace] || 'none';
 
             if (req.permission == "none") {
+              logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: permission not set'});
               res.send(403, 'access denied');
               return next();
             }
 
             if (req.method == 'GET' && req.permission != "read" && req.permission != "readwrite" && req.permission != "admin") {
+              logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: GET requested'});
               res.send(403, "access denied");
               return next();
             }
       
             if (req.method == "PUT" && req.permission != "write" && req.permission != "readwrite" && req.permission != "admin") {
+              logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: PUT requested'});
               res.send(403, "access denied");
               return next();
             }
       
             if (req.method == "DELETE" && req.permission != "delete" && req.permission != "admin") {
+              logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: DELETE requested'});
               res.send(403, "access denied");
               return next();
             }
@@ -104,6 +109,7 @@ module.exports = function(config, redis, logger) {
             })
           }
           else {
+            logger.debug({req: req, statusCode: 401, message: 'access denied: valid authorization information is required'});
             res.send(401, 'Authorization required');
             return next();
           }
