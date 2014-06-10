@@ -56,9 +56,7 @@ module.exports = function(config, redis, logger) {
             req.repo = repo;
 
             // Check for repo permissions
-            req.permission = value.permissions[repo] || 'none';
-            // Check for namespace permissions
-            req.permission = value.permissions[req.params.namespace] || 'none';
+            req.permission = value.permissions[req.namespace] || value.permissions[req.repo] || 'none';
 
             if (req.permission == "none") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: permission not set'});

@@ -19,6 +19,7 @@ module.exports = function(redis, logger) {
         }
 
         var images = {};
+        var tags = {};
 
         if (value == null)
           var value = []
@@ -43,17 +44,28 @@ module.exports = function(redis, logger) {
 
           // check if tag is set
           if (typeof(i['Tag']) !== "undefined") {
-            i_data['Tag'] = i['Tag'];
+            tags[i['Tag']] = iid;
+            //i_data['Tag'] = i['Tag'];
           }
 
           images[iid] = i_data;
         }
 
+        var final_tags = {};
+        for (var key in tags) {
+          final_tags[tags[key]] = key;
+        }
+
         var final_images = [];
         for (var key in images) {
+          // Set the tag on the Image.
+          if (typeof(final_tags[key]) !== "undefined") {
+            images[key]['Tag'] = final_tags[key];
+          }
+  
           final_images.push(images[key]);
         }
-    
+  
         redis.set('images:' + req.params.namespace + '_' + req.params.repo, JSON.stringify(final_images), function(err, status) {
           if (err) {
             logger.error({err: err, type: 'redis', namespace: req.params.namespace, repo: req.params.repo});
