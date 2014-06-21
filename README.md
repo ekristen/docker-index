@@ -32,11 +32,9 @@ The best way to do this is to use docker all the way and to use host mounted vol
   * mkdir /data/registry/config
   * mkdir /data/index/config
 6. Grab a copy of the registry config file, and create a *prod* section and fill it out according to your needs and drop it in the folder you created for the registry using the filename *config.yml*. Make sure you set index_endpoint configuration option.
-7. Copy docker.js and template.js from the index/config folder to the folder you setup for the index app config files, rename template to local-docker.js. Configuration files stack by a certain order (you can see http://lorenwest.github.io/node-config/latest/). 
-8. Edit local-docker.js to update users stanza.
-9. docker run -d -name "index_redis" dockerfile/redis
-10. docker run -d -name "docker_registry" -p 5000:5000 -e SETTINGS\_FLAVOR=prod -v /data/registry/config:/docker-registry/config
-11. docker run -d -name "docker_index" -p 5100:5100 -e REGISTRIES=hostname.to.registry --link index\_redis:redis -v /data/index/config:/opt/app/config docker\_index
+7. docker run -d -name "index_redis" dockerfile/redis
+8. docker run -d -name "docker_registry" -p 5000:5000 -e SETTINGS\_FLAVOR=prod -v /data/registry/config:/docker-registry/config
+9. docker run -d -name "docker_index" -p 5100:5100 -e REGISTRIES=hostname.to.registry --link index\_redis:redis -v /data/index/config:/opt/app/config docker\_index
 
 I'd suggest that you front both the index and the registry using nginx and SSL/TLS and use port 443.
 
