@@ -41,10 +41,11 @@ module.exports = function(config, redis, logger) {
           if (value.password == sha1pwd) {
             req.username = user;
 
-            if (value.admin == true) {
+            if (value.admin == true || value.admin == "true") {
               req.admin = true;
             }
             else {
+              logger.debug({message: 'access denied, no admin value set'});
               res.send(403, {message: 'access denied'});
             }
             

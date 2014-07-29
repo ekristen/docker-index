@@ -6,6 +6,7 @@ module.exports = {
     port: 6379,
     host: 'localhost'
   },
+  private: true,
   loglevel: 'debug',
   registries: [
     // format: hostname [, hostname, hostname, hostname]

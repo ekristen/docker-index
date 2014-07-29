@@ -19,9 +19,9 @@ module.exports = function(config, redis, logger) {
           res.send(200);
           return next();
         },
-        middleware: [
-          index_middleware.requireAuth
-        ]
+        //middleware: [
+        //  index_middleware.requireAuth
+        //]
       },
       
       {

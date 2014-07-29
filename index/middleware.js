@@ -95,6 +95,8 @@ module.exports = function(config, redis, logger) {
                 break;
             }
 
+            req.authed = true;
+
             index_helpers.generateToken(repo, access, function(err, token) {
               var repo = req.params.namespace + '/' + req.params.repo;
               var token = 'signature=' + token + ', repository="' + repo + '", access=' + access;

@@ -15,7 +15,7 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: function(req, res, next) {
           // TODO: pass through to the actual registry??
-    	    res.setHeader('X-Docker-Registry-Version', '0.6.5');
+    	    res.setHeader('X-Docker-Registry-Version', '0.8.0');
     	    res.send(200);
           next();
         }
@@ -30,7 +30,7 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: function(req, res, next) {
           // TODO: pass through to the actual registry??
-    	    res.setHeader('X-Docker-Registry-Version', '0.6.5');
+    	    res.setHeader('X-Docker-Registry-Version', '0.8.0');
     	    res.send(200);
           next();
         }
