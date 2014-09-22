@@ -17,7 +17,7 @@ var SERVER;
 var STR_CLIENT;
 
 exports.setUp = function(done) {
-  client.set('user:testing', JSON.stringify({
+  client.set('users:testing', JSON.stringify({
     username: 'testing',
     password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
     email: 'testing@testing.com',
@@ -64,11 +64,11 @@ exports.BadUsernamePassword = function(test) {
   var body = 'username=testing1&password=testing1&email=testing@testing.com';
   STR_CLIENT.post('/v1/users', body, function(err, req, res, data) {
     test.ok(err);
-    test.equal(res.statusCode, 403)
+    test.equal(res.statusCode, 400)
     test.ok(res);
     test.ok(req);
     test.equal(res.body, data);
-    test.equal(data, '{"message":"bad username and/or password (2)"}');
+    test.equal(data, '{"message":"bad username and/or password (3)"}');
     test.done();
   });
 };

@@ -48,7 +48,7 @@ module.exports = function(redis, logger) {
           var userObj = user;
 
           if (userObj.password != sha1) {
-            res.send(400, {message: "bad username and/or password (2)"});
+            res.send(400, {message: "bad username and/or password (3)"});
             return next();
           }
           else {
