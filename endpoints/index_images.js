@@ -35,6 +35,19 @@ module.exports = function(config, redis, logger) {
         middleware: [ index_middleware.requireAuth ]
       },
       
+      {
+        name: 'getRepoImagesImageAccess',
+        description: '',
+        method: 'GET',
+        path: [
+          '/v1/repositories/:repo/layer/:image/access',
+          '/v1/repositories/:namespace/:repo/layer/:image/access'
+        ],
+        version: '1.0.0',
+        fn: index_images.repoImagesLayerAccess,
+        middleware: [ index_middleware.requireAuth ]
+      }
+
     ]
   };
 

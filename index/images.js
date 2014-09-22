@@ -1,3 +1,5 @@
+var util = require('util');
+
 module.exports = function(redis, logger) {
 
   return {
@@ -32,6 +34,8 @@ module.exports = function(redis, logger) {
           res.send(500, err);
           return next();
         }
+
+        console.log(req.token_auth);
         
         if (status == 0) {
           redis.sadd('images', name, function(err) {
@@ -50,6 +54,27 @@ module.exports = function(redis, logger) {
           return next();
         }
       })
+    },
+    
+    repoImagesLayerAccess: function (req, res, next) {
+      var key = util.format("tokens:%s:images:%s", req.token_auth.token, req.params.image);
+      redis.get(key, function(err, result) {
+        if (err) {
+          res.send(500, {error: err, access: false})
+          return next();
+        }
+
+        redis.del(key);
+
+        if (result == "1") {
+          res.send(200, {access: true})
+          return next();
+        }
+        else {
+          res.send(200, {access: false})
+          return next();
+        }
+      });
     }
     
   } // end return

@@ -28,7 +28,7 @@ module.exports = function(config, redis, logger) {
         shasum.update(pass);
         var sha1pwd = shasum.digest('hex');
 
-        redis.get("user:" + user, function(err, value) {
+        redis.get("users:" + user, function(err, value) {
           if (err) {
             logger.error({err: err, user: user});
             res.send(500, err);
@@ -36,13 +36,21 @@ module.exports = function(config, redis, logger) {
           }
 
           if (value == null) {
-            logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: user not found'});
+            logger.debug({permission: req.permission, statusCode: 403, message: 'access denied: user not found'});
             res.send(403, 'access denied (1)')
             return next();
           }
         
           value = JSON.parse(value);
 
+          // If the account is disabled, do not let it do anything at all
+          if (value.disabled == true || value.disabled == "true") {
+            logger.debug({message: "account is disabled", user: value.username});
+            res.send(401, {message: "access denied (2)"})
+            return next();
+          }
+
+          // Check that passwords match
           if (value.password == sha1pwd) {
             // TODO: Better handling for non repo images urls
             if (req.url == '/v1/users/') {
@@ -99,6 +107,9 @@ module.exports = function(config, redis, logger) {
 
             index_helpers.generateToken(repo, access, function(err, token) {
               var repo = req.params.namespace + '/' + req.params.repo;
+
+              req.token_auth = {token: token, repo: repo, access: access};
+
               var token = 'signature=' + token + ', repository="' + repo + '", access=' + access;
 
               logger.debug({namespace: req.params.namespace, repo: req.params.repo, token: token, access: access});
@@ -111,7 +122,7 @@ module.exports = function(config, redis, logger) {
             })
           }
           else {
-            logger.debug({req: req, statusCode: 401, message: 'access denied: valid authorization information is required'});
+            logger.debug({statusCode: 401, message: 'access denied: valid authorization information is required'});
             res.send(401, 'Authorization required');
             return next();
           }
@@ -125,7 +136,9 @@ module.exports = function(config, redis, logger) {
         var repo   = matches[1].split('=')[1].replace(/\"/g, '');
         var access = matches[2].split('=')[1];
 
-        redis.get("token:" + sig, function(err, value) {
+        req.token_auth = { token: sig, repo: repo, access: access };
+
+        redis.get("tokens:" + sig, function(err, value) {
           if (err) {
             logger.error({err: err, token: sig});
             res.send(500, err);
@@ -134,12 +147,12 @@ module.exports = function(config, redis, logger) {
 
           value = JSON.parse(value);
       
-          redis.del("token:" + sig, function (err) {
-            if (err) {
-              logger.error({err: err, token: sig});
-              res.send(500, err);
-              return next();
-            }
+          //redis.del("token:" + sig, function (err) {
+          //  if (err) {
+          //    logger.error({err: err, token: sig});
+          //    res.send(500, err);
+          //    return next();
+          //  }
 
             if (value.repo == repo && value.access == access) {
               return next();
@@ -148,7 +161,7 @@ module.exports = function(config, redis, logger) {
               res.send(401, 'Authorization required');
               return next();
             }
-          });
+            //});
       
         });
       }

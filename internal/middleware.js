@@ -24,7 +24,7 @@ module.exports = function(config, redis, logger) {
         shasum.update(pass);
         var sha1pwd = shasum.digest('hex');
 
-        redis.get("user:" + user, function(err, value) {
+        redis.get("users:" + user, function(err, value) {
           if (err) {
             logger.error({err: err, user: user});
             res.send(500, err);

@@ -10,6 +10,7 @@ module.exports = {
   loglevel: 'debug',
   registries: [
     // format: hostname [, hostname, hostname, hostname]
-    '192.168.1.114:5000'
-  ]
+    'localhost:5000'
+  ],
+  version: '1.2.0'
 }

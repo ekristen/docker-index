@@ -15,13 +15,7 @@ module.exports = function(config, redis, logger) {
         auth: false,
         path: '/v1/users',
         version: '1.0.0',
-        fn: function (req, res, next) {
-          res.send(200);
-          return next();
-        },
-        //middleware: [
-        //  index_middleware.requireAuth
-        //]
+        fn: index_users.validateUser
       },
       
       {
@@ -29,10 +23,7 @@ module.exports = function(config, redis, logger) {
         description: 'Endpoint from Index Spec, to login or create user',
         method: 'POST',
         path: '/v1/users',
-        fn: index_users.createUser,
-        middleware: [
-          index_middleware.requireAuth
-        ]
+        fn: index_users.createUser
       },
       
       {

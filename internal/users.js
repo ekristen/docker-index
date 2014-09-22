@@ -55,6 +55,10 @@ module.exports = function(redis, logger) {
   endpoints.addUserPermission = function(req, res, next) {
     redis.get('user:' + req.params.username, function(err, get_user) {
       var user = JSON.parse(get_user);
+      
+      if (!user.permissions) {
+        user.permissions = {};
+      }
 
       user.permissions[req.body.repo] = req.body.access;
 

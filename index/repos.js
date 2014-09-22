@@ -1,3 +1,6 @@
+var async = require('async');
+var util = require('util');
+
 module.exports = function(redis, logger) {
 
   return {
@@ -5,7 +8,7 @@ module.exports = function(redis, logger) {
     repoGet: function (req, res, next) {
       if (!req.params.namespace)
         req.params.namespace = 'library';
-
+        
       if (req.permission != 'admin' && req.permission != 'write') {
         res.send(403, 'access denied');
         return next();
@@ -66,15 +69,37 @@ module.exports = function(redis, logger) {
           final_images.push(images[key]);
         }
   
-        redis.set('images:' + req.params.namespace + '_' + req.params.repo, JSON.stringify(final_images), function(err, status) {
+        var image_key = util.format("images:%s_%s", req.params.namespace, req.params.repo);
+        redis.set(image_key, JSON.stringify(final_images), function(err, status) {
           if (err) {
             logger.error({err: err, type: 'redis', namespace: req.params.namespace, repo: req.params.repo});
             res.send(500, err);
             return next();
           }
 
-          res.send(200, "")
-          return next();
+          async.each(final_images, function(image, cb) {
+            var token_key = util.format("tokens:%s:images:%s", req.token_auth.token, image.id);
+            redis.set(token_key, 1, function(err, resp) {
+              if (err) {
+                cb(err);
+              }
+              redis.expire(token_key, 60, function(err, resp2) {
+                if (err) {
+                  cb(err);
+                }
+                
+                cb();
+              });
+            });
+          }, function(err) {
+            if (err) {
+              res.send(500, "something went wrong");
+              return next();
+            }
+            
+            res.send(200);
+            return next();
+          });
         })
       });
     },
