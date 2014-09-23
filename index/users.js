@@ -18,7 +18,7 @@ module.exports = function(redis, logger) {
         shasum.update(req.body.password);
         var sha1 = shasum.digest("hex");
 
-        if (user.length == 0) {
+        if (typeof(user.username) !== "undefined") {
           // User Does Not Exist, Create!
           var userObj = {};
 
