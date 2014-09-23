@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/ekristen/docker-index.png)](https://travis-ci.org/ekristen/docker-index)
 
-**Version 1.2.1 released June 5th** -- fixes bug with tags not being updated properly. You'll need to repush all your images. Basically the docker client will say that all images exist, unless you have new ones, but there is a list of images the client sends at the end that will be re-processed and update the index manifest properly.
+**Version 1.3.0** is out, or at least in release candidacy. It now works with 0.8.x and 0.7.x versions of the docker registry. The whole purpose of this project is to provide the docker masses with an authenticated docker index for their own docker registry that has real repository access controls instead of just using htaccess on a reverse proxy. There is now a *private mode* (which admittedly probably isn't the best name) but its function is to allow people to register using the docker-index but accounts get locked out immediately.
 
-This is Alpha software. If you want to help, let me know.
+While I don't have any problems using this software, I cannot say that it is 100% without bug or will work with anyone, I know some people have downloaded the project, but I haven received zero feedback as to functionality.
 
 This is a functioning Docker Index that can be run independent of the Docker Registry software.
 

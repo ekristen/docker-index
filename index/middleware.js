@@ -36,7 +36,7 @@ module.exports = function(config, redis, logger) {
           }
 
           if (value == null) {
-            logger.debug({permission: req.permission, statusCode: 403, message: 'access denied: user not found'});
+            logger.debug({permission: req.permission, user: user, statusCode: 403, message: 'access denied: user not found'});
             res.send(403, 'access denied (1)')
             return next();
           }
