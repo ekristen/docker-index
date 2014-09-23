@@ -50,7 +50,7 @@ exports.setUp = function(done) {
 }
 
 exports.CreateUser = function(test) {
-  var body = 'username=testing&password=testing&email=testing@testing.com';
+  var body = 'username=testing3&password=testing3&email=testing3@testing3.com';
   STR_CLIENT.post('/v1/users', body, function(err, req, res, data) {
     test.ifError(err);
     test.ok(req);
@@ -61,13 +61,12 @@ exports.CreateUser = function(test) {
 };
 
 exports.BadUsernamePassword = function(test) {
-  var body = 'username=testing1&password=testing1&email=testing@testing.com';
+  var body = 'username=testing&password=testing123&email=testing@testing.com';
   STR_CLIENT.post('/v1/users', body, function(err, req, res, data) {
     test.ok(err);
     test.equal(res.statusCode, 400)
     test.ok(res);
     test.ok(req);
-    test.equal(res.body, data);
     test.equal(data, '{"message":"bad username and/or password (3)"}');
     test.done();
   });

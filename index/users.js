@@ -12,20 +12,18 @@ module.exports = function(redis, logger) {
           return next();
         }
 
-        var user = JSON.parse(value) || {};
-
-        var shasum = crypto.createHash("sha1");
-        shasum.update(req.body.password);
-        var sha1 = shasum.digest("hex");
-
-        if (typeof(user.username) !== "undefined") {
+        if (value == null) {
           // User Does Not Exist, Create!
+          var shasum = crypto.createHash("sha1");
+          shasum.update(req.body.password);
+          var sha1 = shasum.digest("hex");
+          
           var userObj = {};
 
-          userObj.username = user.username || req.body.username;
-          userObj.password = user.password || sha1;
-          userObj.email = user.email || req.body.email;
-          userObj.permissions = user.permissions || {};
+          userObj.username = req.body.username;
+          userObj.password = sha1;
+          userObj.email = req.body.email;
+          userObj.permissions = {};
 
           if (config.private == true)
             userObj.disabled = true;
@@ -38,13 +36,21 @@ module.exports = function(redis, logger) {
 
           redis.set("users:" + userObj.username, JSON.stringify(userObj), function(err, status) {
             if (err) {
-              return res.send(500, err);
+              res.send(500, err);
+              return next();
             }
 
-            return res.send(201);
+            res.send(201, {message: 'account created successfully'});
+            return next();
           });
         }
         else {
+          var user = JSON.parse(value) || {};
+
+          var shasum = crypto.createHash("sha1");
+          shasum.update(req.body.password);
+          var sha1 = shasum.digest("hex");
+
           var userObj = user;
 
           if (userObj.password != sha1) {
@@ -52,7 +58,7 @@ module.exports = function(redis, logger) {
             return next();
           }
           else {
-            res.send(201);
+            res.send(201, {message: 'authentication successful'});
             return next();
           }
 
