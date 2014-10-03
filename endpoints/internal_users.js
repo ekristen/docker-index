@@ -48,11 +48,24 @@ module.exports = function(config, redis, logger) {
         description: 'Enable a Single User',
         method: 'PUT',
         path: [
-          '/users/:username/enable',
+          '/users/:username/enable'
+        ],
+        version: '1.0.0',
+        fn: internal_users.enableUser,
+        middleware: [
+          internal_middleware.requireAuth
+        ]
+      },
+      
+      {
+        name: 'Disable User',
+        description: 'Disable a Single User',
+        method: 'PUT',
+        path: [
           '/users/:username/disable'
         ],
         version: '1.0.0',
-        fn: internal_users.enableDisableUser,
+        fn: internal_users.disableUser,
         middleware: [
           internal_middleware.requireAuth
         ]

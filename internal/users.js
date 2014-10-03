@@ -150,7 +150,7 @@ module.exports = function(redis, logger) {
     });
   };
 
-  endpoints.enableDisableUser = function(req, res, next) {
+  endpoints.enableUser = function(req, res, next) {
     redis.get('users:' + req.params.username, function(err, user) {
       if (err) {
         res.send(500, {message: err, error: true});
@@ -163,12 +163,7 @@ module.exports = function(redis, logger) {
       }
       
       var userObj = user;
-
-      if (req.path.indexOf('enable') !== -1) {
-        userObj.disabled = false;
-      } else {
-        userObj.disabled = true;
-      }
+      userObj.disabled = true;
       
       redis.set('users:' + req.params.username, JSON.stringify(userObj), function(err) {
         if (err) {
@@ -178,6 +173,34 @@ module.exports = function(redis, logger) {
         }
         
         res.send(201, {message: "account enabled", user: req.params.username});
+        return next();
+      })
+    })
+  };
+
+  endpoints.disableUser = function(req, res, next) {
+    redis.get('users:' + req.params.username, function(err, user) {
+      if (err) {
+        res.send(500, {message: err, error: true});
+        return next();
+      }
+      
+      if (user == null) {
+        res.send(409, {message: 'user does not exist', error: true});
+        return next();
+      }
+      
+      var userObj = user;
+      userObj.disabled = true;
+      
+      redis.set('users:' + req.params.username, JSON.stringify(userObj), function(err) {
+        if (err) {
+          logger.error({err: err}, "Redis Error -- Unable to Set Key");
+          res.send(500, {err: err});
+          return next();
+        }
+        
+        res.send(201, {message: "account disabled", user: req.params.username});
         return next();
       })
     })
