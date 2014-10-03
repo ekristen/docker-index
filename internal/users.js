@@ -151,19 +151,26 @@ module.exports = function(redis, logger) {
   };
 
   endpoints.enableUser = function(req, res, next) {
-    redis.get('users:' + req.params.username, function(err, user) {
+    redis.get('users:' + req.params.username, function(err, user_json) {
       if (err) {
         res.send(500, {message: err, error: true});
         return next();
       }
-      
-      if (user == null) {
+
+      if (user_json == null) {
         res.send(409, {message: 'user does not exist', error: true});
         return next();
       }
       
+      try {
+        var user = JSON.parse(user_json);
+      }
+      catch (e) {
+        return next(e);
+      }
+      
       var userObj = user;
-      userObj.disabled = true;
+      userObj.disabled = false;
       
       redis.set('users:' + req.params.username, JSON.stringify(userObj), function(err) {
         if (err) {
@@ -179,15 +186,22 @@ module.exports = function(redis, logger) {
   };
 
   endpoints.disableUser = function(req, res, next) {
-    redis.get('users:' + req.params.username, function(err, user) {
+    redis.get('users:' + req.params.username, function(err, user_json) {
       if (err) {
         res.send(500, {message: err, error: true});
         return next();
       }
       
-      if (user == null) {
+      if (user_json == null) {
         res.send(409, {message: 'user does not exist', error: true});
         return next();
+      }
+      
+      try {
+        var user = JSON.parse(user_json);
+      }
+      catch (e) {
+        return next(e);
       }
       
       var userObj = user;

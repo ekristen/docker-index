@@ -38,6 +38,13 @@ module.exports = function(config, redis, logger) {
         
           value = JSON.parse(value);
 
+          // If the account is disabled, do not let it do anything at all
+          if (value.disabled == true || value.disabled == "true") {
+            logger.debug({message: "account is disabled", user: value.username});
+            res.send(401, {message: "access denied (2)"})
+            return next();
+          }
+
           if (value.password == sha1pwd) {
             req.username = user;
 
