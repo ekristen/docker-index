@@ -40,28 +40,20 @@ module.exports = function(redis, logger) {
               return next();
             }
 
-            res.send(201, {message: 'account created successfully'});
-            return next();
+            redis.sadd('users', userObj.username, function(err) {
+              if (err) {
+                res.send(500, err);
+                return next();
+              }
+
+              res.send(201, {message: 'account created successfully'});
+              return next();
+            });
           });
         }
         else {
-          var user = JSON.parse(value) || {};
-
-          var shasum = crypto.createHash("sha1");
-          shasum.update(req.body.password);
-          var sha1 = shasum.digest("hex");
-
-          var userObj = user;
-
-          if (userObj.password != sha1) {
-            res.send(400, {message: "bad username and/or password (3)"});
-            return next();
-          }
-          else {
-            res.send(201, {message: 'authentication successful'});
-            return next();
-          }
-
+          res.send(400, 'Username or email already exists');
+          return next();
         }
       });
     },
@@ -100,7 +92,6 @@ module.exports = function(redis, logger) {
       }
 
       var auth = req.headers.authorization.split(' ');
-
       if (auth[0] == 'Basic') {
         var buff  = new Buffer(auth[1], 'base64');
         var plain = buff.toString();
@@ -108,7 +99,7 @@ module.exports = function(redis, logger) {
         var username  = creds[0];
         var password  = creds[1];
 
-        redis.get("users:" + user, function(err, value) {
+        redis.get("users:" + username, function(err, value) {
           if (err) {
             res.send(500, err);
             return next();
@@ -117,23 +108,28 @@ module.exports = function(redis, logger) {
           var user = JSON.parse(value) || {};
 
           var shasum = crypto.createHash("sha1");
-          shasum.update(req.body.password);
+          shasum.update(password);
           var sha1 = shasum.digest("hex");
 
           if (user.disabled == true) {
+            // Account not active (https://github.com/docker/docker/blob/fefaf6a73db52b6d20774f049d7456e2ba6ff5ca/registry/auth.go#L235)
             return res.send(403, {message: "account is not active"});
           }
 
           // Check to make sure the password is valid.
           if (user.password != sha1) {
+            // Bad login (https://github.com/docker/docker/blob/fefaf6a73db52b6d20774f049d7456e2ba6ff5ca/registry/auth.go#L233)
             return res.send(401, {message: "bad username and/or password (2)"});
           }
 
+          // Login Succeeded (https://github.com/docker/docker/blob/fefaf6a73db52b6d20774f049d7456e2ba6ff5ca/registry/auth.go#L231)
           return res.send(200);
         });
       }
-
-      return res.send(401);
+      else {
+        // Bad login (https://github.com/docker/docker/blob/fefaf6a73db52b6d20774f049d7456e2ba6ff5ca/registry/auth.go#L233)
+        return res.send(401); 
+      }
     }
 
   }
