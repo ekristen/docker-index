@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "restify": "git+https://github.com/ekristen/node-restify.git",
-    "restify-endpoints": "*",
+    "restify-endpoints": "~1.0.5",
     "bunyan": "~0.22.1",
     "async": "~0.6.2",
     "config": "~0.4.35",
@@ -20,8 +20,11 @@
   "devDependencies": {
     "nodeunit": "*",
     "supertest": "*",
-    "redis-mock": "*",
+    "fakeredis": "*",
     "domain": "*",
     "once": "*"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   }
 }
