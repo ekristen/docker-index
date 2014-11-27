@@ -5,7 +5,14 @@ module.exports = function(redis, logger) {
   return {
     createUser: function (req, res, next) {
       // Validate against a-z0-9_ regexx
-            
+
+      // Allow for account registrations to be disabled.
+      // See: https://github.com/docker/docker/blob/fefaf6a73db52b6d20774f049d7456e2ba6ff5ca/registry/auth.go#L245
+      if (config.disable_account_registration == true) {
+        res.send(401);
+        return next();
+      }
+
       redis.get("users:" + req.body.username, function(err, value) {
         if (err) {
           res.send(500, err);
@@ -25,7 +32,7 @@ module.exports = function(redis, logger) {
           userObj.email = req.body.email;
           userObj.permissions = {};
 
-          if (config.private == true)
+          if (config.private == true || config.disable_new_accounts == true)
             userObj.disabled = true;
 
           // Check to make sure the password is valid.
@@ -113,22 +120,26 @@ module.exports = function(redis, logger) {
 
           if (user.disabled == true) {
             // Account not active (https://github.com/docker/docker/blob/fefaf6a73db52b6d20774f049d7456e2ba6ff5ca/registry/auth.go#L235)
-            return res.send(403, {message: "account is not active"});
+            res.send(403, {message: "account is not active"});
+            return next();
           }
 
           // Check to make sure the password is valid.
           if (user.password != sha1) {
             // Bad login (https://github.com/docker/docker/blob/fefaf6a73db52b6d20774f049d7456e2ba6ff5ca/registry/auth.go#L233)
-            return res.send(401, {message: "bad username and/or password (2)"});
+            res.send(401, {message: "bad username and/or password (2)"});
+            return next();
           }
 
           // Login Succeeded (https://github.com/docker/docker/blob/fefaf6a73db52b6d20774f049d7456e2ba6ff5ca/registry/auth.go#L231)
-          return res.send(200);
+          res.send(200);
+          return next();
         });
       }
       else {
         // Bad login (https://github.com/docker/docker/blob/fefaf6a73db52b6d20774f049d7456e2ba6ff5ca/registry/auth.go#L233)
-        return res.send(401); 
+        res.send(401); 
+        return next();
       }
     }
 

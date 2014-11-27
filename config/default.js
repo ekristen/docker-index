@@ -1,3 +1,5 @@
+var pkg = require('../package.json');
+
 module.exports = {
   app: {
     port: 5100
@@ -6,11 +8,12 @@ module.exports = {
     port: 6379,
     host: 'localhost'
   },
-  private: true,
   loglevel: 'debug',
   registries: [
     // format: hostname [, hostname, hostname, hostname]
     'localhost:5000'
   ],
-  version: '1.3.1'
+  version: pkg.version,
+  disable_account_registration: false,
+  disable_new_accounts: true
 }
