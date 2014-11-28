@@ -275,9 +275,3 @@ exports.CreateUserMissingEmailField = function(test) {
     test.done();
   });
 };
-
-
-
-process.on('uncaughtException', function(err) {
-  console.log('Caught exception: ' + err);
-});
