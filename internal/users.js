@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var crypto = require('crypto');
+var restify = require('restify');
 
 module.exports = function(redis, logger) {
 
@@ -99,6 +100,16 @@ module.exports = function(redis, logger) {
 
 
   endpoints.createUser = function(req, res, next) {
+    if (!req.body.username) {
+      return next(new restify.errors.MissingParameterError("username field is required"));
+    }
+    if (!req.body.password) {
+      return next(new restify.errors.MissingParameterError("password field is required"));
+    }
+    if (!req.body.email) {
+      return next(new restify.errors.MissingParameterError("email field is required"));
+    }
+
     redis.get('users:' + req.body.username, function(err, user) {
       if (err) {
         res.send(500, {message: err, error: true});
