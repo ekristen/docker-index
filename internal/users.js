@@ -54,6 +54,11 @@ module.exports = function(redis, logger) {
 
   endpoints.addUserPermission = function(req, res, next) {
     redis.get('users:' + req.params.username, function(err, get_user) {
+      if (get_user == null) {
+        res.send(404, {message: 'invalid user'});
+        return next();
+      }
+
       var user = JSON.parse(get_user);
       
       if (!user.permissions) {
@@ -68,22 +73,14 @@ module.exports = function(redis, logger) {
       });
     });
   };
-
-  endpoints.updateUserPermission = function(req, res, next) {
-    redis.get('users:' + req.params.username, function(err, get_user) {
-      var user = JSON.parse(get_user);
-
-      user.permissions[req.params.repo] = req.body.access;
-
-      redis.set('users:' + req.params.username, JSON.stringify(user), function(err) {
-        res.send(202, {success: true});
-        return next();
-      });
-    });
-  };
   
   endpoints.removeUserPermission = function(req, res, next) {
     redis.get('users:' + req.params.username, function(err, get_user) {
+      if (get_user == null) {
+        res.send(404, {message: 'invalid user'});
+        return next();
+      }
+
       var user = JSON.parse(get_user);
 
       delete user.permissions[req.params.repo];
