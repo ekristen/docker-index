@@ -45,7 +45,7 @@ exports.setUp = function(done) {
 
       done()
   });
-}
+};
 
 exports.CreateUser = function(test) {
   var body = 'username=testing3&password=testing3&email=testing3@testing3.com';
