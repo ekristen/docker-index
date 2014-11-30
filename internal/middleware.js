@@ -1,4 +1,5 @@
 var crypto = require('crypto');
+var util = require('util');
 
 module.exports = function(config, redis, logger) {
 
@@ -86,6 +87,34 @@ module.exports = function(config, redis, logger) {
         res.send(401, 'authorization required');
         return next();
       }
+    },
+
+    // Check to make sure user has admin or write privileges
+    requireRepoAccess: function (req, res, next) {
+      if (req.admin == true) {
+        return next();
+      }
+
+      var user_key = util.format('users:%s', req.username);
+      
+      redis.get(user_key, function(err, user) {
+        next.ifError(err);
+        
+        var userobj = JSON.parse(user);
+        
+        var permissions = userobj.permissions;
+        
+        var access = permissions[req.params.namespace] || permissions[req.params.namespace + '_' + req.params.repo] || false;
+        
+        if (access == false || access == 'read') {
+          res.send(403, {message: 'access denied (4)'});
+          return next();
+        }
+        
+        return next();
+      });
     }
+
   }
-}
+
+};

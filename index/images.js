@@ -35,8 +35,6 @@ module.exports = function(redis, logger) {
           return next();
         }
 
-        console.log(req.token_auth);
-        
         if (status == 0) {
           redis.sadd('images', name, function(err) {
             if (err) {
