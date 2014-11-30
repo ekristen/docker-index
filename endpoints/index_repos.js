@@ -3,6 +3,7 @@ module.exports = function(config, redis, logger) {
   var index_helpers = require('../index/helpers.js')(redis);
   var index_middleware = require('../index/middleware.js')(config, redis, logger);
   var index_repos = require('../index/repos.js')(redis, logger);
+  var webhooks = require('../lib/webhooks.js')(config, redis, logger);
 
   var endpoints = {
     name: 'Index Repositories Endpoints',
@@ -18,7 +19,12 @@ module.exports = function(config, redis, logger) {
         ],
         version: '1.0.0',
         fn: index_repos.repoGet,
-        middleware: [ index_middleware.requireAuth ]
+        middleware: [
+          index_middleware.requireAuth
+        ],
+        afterware: [
+          webhooks.processWebhooks
+        ]
       },
       
       {

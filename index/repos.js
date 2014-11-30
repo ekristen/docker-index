@@ -1,26 +1,6 @@
 var async = require('async');
 var util = require('util');
 
-function detectNewImage(existing, added) {
-  var existing_ids = [];
-  for (var i=0; i<existing.length; i++) {
-    if (typeof(existing[i].Tag) != "undefined")
-      existing_ids.push(existing[i].id);
-  }
-
-  var added_ids = [];
-  for (var i=0; i<added.length; i++) {
-    if (typeof(added[i].Tag) != "undefined") {
-      if (existing_ids.indexOf(added[i].id) == -1) {
-        console.log('NEW_IMAGE_FOUND: ' + added[i].id + ' - Tag: ' + added[i].Tag);
-        // trigger webhook!
-      }      
-    }
-  }
-  //console.log('ORIGINAL: ' + util.inspect(existing));
-  //console.log('NEW: ' + util.inspect(added));
-}
-
 module.exports = function(redis, logger) {
 
   return {
@@ -48,8 +28,6 @@ module.exports = function(redis, logger) {
           var value = []
         else
           var value = JSON.parse(value);
-        
-        detectNewImage(value, req.body);
 
         var data = value.concat(req.body);
 

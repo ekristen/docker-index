@@ -1,4 +1,5 @@
 var crypto = require('crypto');
+var util = require('util');
 
 module.exports = function(config, redis, logger) {
   var index_helpers = require('./helpers.js')(redis);
@@ -165,6 +166,7 @@ module.exports = function(config, redis, logger) {
       
         });
       }
-    }
-  }
-}
+    },
+
+  }; // end return
+}; // end module.exports

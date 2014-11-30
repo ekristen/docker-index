@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "restify": "git+https://github.com/ekristen/node-restify.git",
-    "restify-endpoints": "~1.0.5",
+    "restify-endpoints": "git://github.com/ekristen/restify-endpoints.git#master",
     "bunyan": "~0.22.1",
     "async": "~0.6.2",
     "config": "~0.4.35",
