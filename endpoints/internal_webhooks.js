@@ -1,7 +1,7 @@
 
 module.exports = function(config, redis, logger) {
   var internal_middleware = require('../internal/middleware.js')(config, redis, logger);
-  var internal_webhooks = require('../internal/webhooks.js')(config, redis, logger);
+  var internal_webhooks = require('../internal/webhooks.js')(redis, logger);
 
   var endpoints = {
     name: 'InternalWebhooks',
@@ -38,15 +38,30 @@ module.exports = function(config, redis, logger) {
         ]
       },
       {
-        name: 'Remove Webhook',
+        name: 'Remove Single Webhook',
         description: 'Delete an existing webhook',
+        method: 'DELETE',
+        path: [
+          '/webhooks/:repo/:webhook_id',
+          '/webhooks/:namespace/:repo/:webhook_id'
+        ],
+        version: '1.0.0',
+        fn: internal_webhooks.removeWebhook,
+        middleware: [
+          internal_middleware.requireAuth,
+          internal_middleware.requireRepoAccess
+        ]
+      },
+      {
+        name: 'Remove All Repository Webhooks',
+        description: 'Remove All Repository Webhooks',
         method: 'DELETE',
         path: [
           '/webhooks/:repo',
           '/webhooks/:namespace/:repo'
         ],
         version: '1.0.0',
-        fn: internal_webhooks.removeWebhook,
+        fn: internal_webhooks.removeWebhookAll,
         middleware: [
           internal_middleware.requireAuth,
           internal_middleware.requireRepoAccess

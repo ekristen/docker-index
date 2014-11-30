@@ -16,7 +16,8 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: internal_images.listImages,
         middleware: [
-          internal_middleware.requireAuth
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
         ]
       }
 

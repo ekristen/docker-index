@@ -15,7 +15,8 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: internal_users.listUsers,
         middleware: [
-          internal_middleware.requireAuth
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
         ]
       },
       
@@ -27,7 +28,8 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: internal_users.createUser,
         middleware: [
-          internal_middleware.requireAuth
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
         ]
       },
       
@@ -39,7 +41,8 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: internal_users.getUser,
         middleware: [
-          internal_middleware.requireAuth
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
         ]
       },
       
@@ -53,7 +56,8 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: internal_users.enableUser,
         middleware: [
-          internal_middleware.requireAuth
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
         ]
       },
       
@@ -67,7 +71,8 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: internal_users.disableUser,
         middleware: [
-          internal_middleware.requireAuth
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
         ]
       },
 
@@ -79,7 +84,8 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: internal_users.getUserPermissions,
         middleware: [
-          internal_middleware.requireAuth
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
         ]
       },
       
@@ -91,7 +97,8 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: internal_users.addUserPermission,
         middleware: [
-          internal_middleware.requireAuth
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
         ]
       },
       
@@ -103,7 +110,8 @@ module.exports = function(config, redis, logger) {
         version: '1.0.0',
         fn: internal_users.removeUserPermission,
         middleware: [
-          internal_middleware.requireAuth
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
         ]
       }
 
