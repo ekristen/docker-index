@@ -40,10 +40,10 @@ module.exports = function(config, redis, logger) {
       {
         name: 'Remove Single Webhook',
         description: 'Delete an existing webhook',
-        method: 'DELETE',
+        method: 'DEL',
         path: [
-          '/webhooks/:repo/:webhook_id',
-          '/webhooks/:namespace/:repo/:webhook_id'
+          '/webhooks/:repo/:id',
+          '/webhooks/:namespace/:repo/:id'
         ],
         version: '1.0.0',
         fn: internal_webhooks.removeWebhook,
@@ -55,7 +55,7 @@ module.exports = function(config, redis, logger) {
       {
         name: 'Remove All Repository Webhooks',
         description: 'Remove All Repository Webhooks',
-        method: 'DELETE',
+        method: 'DEL',
         path: [
           '/webhooks/:repo',
           '/webhooks/:namespace/:repo'

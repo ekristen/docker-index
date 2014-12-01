@@ -15,7 +15,8 @@
     "async": "~0.6.2",
     "config": "~0.4.35",
     "redis": "~0.10.1",
-    "underscore": "~1.6.0"
+    "underscore": "~1.6.0",
+    "request": "~2.49.0"
   },
   "devDependencies": {
     "nodeunit": "*",

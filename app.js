@@ -13,8 +13,8 @@ var logger = bunyan.createLogger({
 var redis = require('redis').createClient(config.redis.port, config.redis.host);
 
 redis.on('error', function(err) {
-  console.log(err);
-})
+  logger.error({domain: 'redis', err: err, stack: err.stack});
+});
 
 // Setup Restify Endpoints
 var endpoints = new restify_endpoints.EndpointManager({
@@ -28,9 +28,10 @@ var server = restify.createServer({
   version: '1.0.0'
 });
 
-//server.on('uncaughtException', function (req, res, route, err) {
-//    console.log('uncaughtException', err.stack);
-//});
+// Catch unhandled exceptions and log it!
+server.on('uncaughtException', function (req, res, route, err) {
+  logger.error({domain: 'uncaughtException', err: err, stack: err.stack});
+});
 
 // Basic Restify Middleware
 server.use(restify.acceptParser(server.acceptable));
@@ -43,7 +44,7 @@ server.use(restify.bodyParser({
   overrideParams: false
 }));
 
-// Audit logging to stdout
+// Audit logging to stdout via bunyan
 server.on('after', restify.auditLogger({
   log: bunyan.createLogger({
     name: 'audit',

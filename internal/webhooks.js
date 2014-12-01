@@ -21,9 +21,10 @@ module.exports = function(redis, logger) {
 
       async.eachSeries(webhooks, function(webhook, callback) {
         var webhook_key = util.format('webhooks:%s_%s:%s', req.params.namespace, req.params.repo, webhook)
-        redis.get(webhook_key, function(err, hook) {
-          if (err) return callback(err);
-          all_webhooks.push(hook);
+        redis.hgetall(webhook_key, function(err, hook) {
+          if (err) return callback(err);          
+          if (hook)
+            all_webhooks.push(hook);
           callback(null);
         });
       }, function(err) {
@@ -43,8 +44,12 @@ module.exports = function(redis, logger) {
       .update(req.body.url)
       .digest('hex');
     var webhook_key = util.format('webhooks:%s_%s:%s', req.params.namespace, req.params.repo, webhook_id);
+    var webhook_events = req.body.events;
 
-    redis.get(webhook_key, function(err, exists) {
+    var new_event = req.body.events.indexOf('new') !== -1 ? true : false;
+    var existing_event = req.body.events.indexOf('existing') !== -1 ? true : false;
+
+    redis.exists(webhook_key, function(err, exists) {
       next.ifError(err);
 
       if (exists) {
@@ -52,13 +57,42 @@ module.exports = function(redis, logger) {
         return next();
       }
 
-      redis.sadd(webhooks_key, webhook_id, function(err) {
+      async.series([
+        // Set the ID
+        function(callback) {
+          redis.hset(webhook_key, 'id', webhook_id, function(err, result) {
+            if (err) return callback(err);
+            callback(null);
+          });
+        },
+        // Set the URL
+        function(callback) {
+          redis.hset(webhook_key, 'url', req.body.url, function(err, result) {
+            if (err) return callback(err);
+            callback(null);
+          });
+        },
+        // Set the New Events
+        function(callback) {
+          redis.hset(webhook_key, 'new', new_event, function(err, result) {
+            if (err) return callback(err);
+            callback(null);
+          });
+        },
+        // Set the Existing Event
+        function(callback) {
+          redis.hset(webhook_key, 'existing', existing_event, function(err, result) {
+            if (err) return callback(err);
+            callback(null);
+          })
+        }
+      ], function(err) {
         next.ifError(err);
 
-        redis.set(webhook_key, req.body.url, function(err, success) {
+        redis.sadd(webhooks_key, webhook_id, function(err) {
           next.ifError(err);
-
-          res.send(201, {message: 'webhook created', 'id': webhook_id});
+          
+          res.send(201, {message: 'webhook created', 'id': webhook_id, 'events': webhook_events});
           return next();
         });
       });
@@ -70,10 +104,10 @@ module.exports = function(redis, logger) {
       req.params.namespace = 'library';
 
     var webhooks_key = util.format('webhooks:%s_%s', req.params.namespace, req.params.repo);
-    var webhook_id = req.params.webhook_id;
+    var webhook_id = req.params.id;
     var webhook_key = util.format('webhooks:%s_%s:%s', req.params.namespace, req.params.repo, webhook_id);
 
-    redis.get(webhook_key, function(err, exists) {
+    redis.exists(webhook_key, function(err, exists) {
       next.ifError(err);
 
       if (exists) {
@@ -83,7 +117,7 @@ module.exports = function(redis, logger) {
           redis.del(webhook_key, function(err, success) {
             next.ifError(err);
         
-            res.send(200, {message: 'webhook deleted'});
+            res.send(200, {message: 'webhook deleted', id: webhook_id});
             return next();
           })
         });
