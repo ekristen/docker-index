@@ -52,9 +52,7 @@ module.exports = function(config, redis, logger) {
     }
 
     var webhooks_key = util.format('webhooks:%s_%s', req.params.namespace, req.params.repo);
-    var webhook_id = crypto.createHash('sha1')
-      .update(req.body.url)
-      .digest('hex');
+    var webhook_id = crypto.createHash('sha1').update(req.body.url).digest('hex');
     var webhook_key = util.format('webhooks:%s_%s:%s', req.params.namespace, req.params.repo, webhook_id);
     var webhook_events = req.body.events;
 
@@ -177,10 +175,15 @@ module.exports = function(config, redis, logger) {
 
   endpoints.pingWebhook = function (req, res, next) {
     var webhook_key = util.format('webhooks:%s_%s:%s', req.params.namespace, req.params.repo, req.params.id);
-    
+
     redis.hgetall(webhook_key, function(err, webhook) {
       next.ifError(err);
-      
+
+      if (webhook == null) {
+        res.send(404, {message: 'webhook not found'})
+        return next();
+      }
+
       var payload = {
         id: webhook.id,
         config: webhook
@@ -191,11 +194,11 @@ module.exports = function(config, redis, logger) {
         timeout: config.webhooks.timeout,
         json: true,
         body: payload
-      }, function(err, res, body) {
+      }, function(err, response, body) {
         next.ifError(err);
 
         if (res.statusCode == 200) {
-          res.send(204);
+          res.send(200, {body: body});
           return next();
         }
         

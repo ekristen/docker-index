@@ -28,6 +28,8 @@ module.exports = function(redis, logger) {
           var value = []
         else
           var value = JSON.parse(value);
+        
+        req.original_images = value;
 
         var data = value.concat(req.body);
 
