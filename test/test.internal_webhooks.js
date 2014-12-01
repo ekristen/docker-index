@@ -10,7 +10,7 @@ var logger = {
 
 var client = fakeredis.createClient();
 
-var webhooks = require('../internal/webhooks')(client, logger);
+var webhooks = require('../internal/webhooks')({}, client, logger);
 var middleware = require('../internal/middleware')({}, client, logger);
 
 var SERVER;
@@ -55,8 +55,8 @@ exports.setUp = function(done) {
   SERVER.get('/webhooks/:namespace/:repo', middleware.requireAuth, middleware.requireRepoAccess, webhooks.listWebhooks);
   SERVER.post('/webhooks/:repo', middleware.requireAuth, middleware.requireRepoAccess, webhooks.addWebhook);
   SERVER.post('/webhooks/:namespace/:repo', middleware.requireAuth, middleware.requireRepoAccess, webhooks.addWebhook);
-  SERVER.del('/webhooks/:repo/:webhook_id', middleware.requireAuth, middleware.requireRepoAccess, webhooks.removeWebhook);
-  SERVER.del('/webhooks/:namespace/:repo/:webhook_id', middleware.requireAuth, middleware.requireRepoAccess, webhooks.removeWebhook);
+  SERVER.del('/webhooks/:repo/:id', middleware.requireAuth, middleware.requireRepoAccess, webhooks.removeWebhook);
+  SERVER.del('/webhooks/:namespace/:repo/:id', middleware.requireAuth, middleware.requireRepoAccess, webhooks.removeWebhook);
 
   SERVER.listen(9999, '127.0.0.1', function() {
       STR_CLIENT = restify.createStringClient({
@@ -73,7 +73,7 @@ exports.tearDown = function(done) {
   SERVER.close(done);
 };
 
-exports.AddWebhook = function(test) {
+exports.AddWebhookDefaultEvent = function(test) {
   var options = {
     path: '/webhooks/base/debian',
     headers: {
@@ -88,7 +88,7 @@ exports.AddWebhook = function(test) {
     test.ok(req);
     test.ok(res);
     test.equal(res.statusCode, 201);
-    test.equal(res.body, '{"message":"webhook created","id":"d55ecc09f4cd1779d592b7c7f4bf3006fcb62a4c"}');
+    test.equal(res.body, '{"message":"webhook created","id":"d55ecc09f4cd1779d592b7c7f4bf3006fcb62a4c","events":["new"]}');
     test.done();
   });
 };
@@ -105,7 +105,49 @@ exports.ListWebhooks = function(test) {
     test.ok(req);
     test.ok(res);
     test.equal(res.statusCode, 200);
-    test.equal(res.body, '["http://www.example.com/hook"]');
+    test.equal(res.body, '[{"active":"1","existing":"false","id":"d55ecc09f4cd1779d592b7c7f4bf3006fcb62a4c","new":"true","url":"http://www.example.com/hook"}]');
+    test.done();
+  });
+};
+
+exports.AddWebhookNewExistingEvents = function(test) {
+  var options = {
+    path: '/webhooks/base/debian',
+    headers: {
+      authorization: 'Basic ' + new Buffer("testing:testing").toString('base64')
+    }
+  };
+  var body = {
+    url: 'http://www.example.com/hook2',
+    events: ['new','existing']
+  };
+  STR_CLIENT.post(options, body, function(err, req, res, data) {
+    test.ifError(err);
+    test.ok(req);
+    test.ok(res);
+    test.equal(res.statusCode, 201);
+    test.equal(res.body, '{"message":"webhook created","id":"bea56e556e7791c4a2cfec2d67b7fc8da9529851","events":["new","existing"]}');
+    test.done();
+  });
+};
+
+exports.AddWebhookInvalidEvent = function(test) {
+  var options = {
+    path: '/webhooks/base/debian',
+    headers: {
+      authorization: 'Basic ' + new Buffer("testing:testing").toString('base64')
+    }
+  };
+  var body = {
+    url: 'http://www.example.com/hook',
+    events: ['new','existing', 'other']
+  };
+  STR_CLIENT.post(options, body, function(err, req, res, data) {
+    test.ok(err);
+    test.ok(req);
+    test.ok(res);
+    test.equal(res.statusCode, 409);
+    test.equal(res.body, 'other event is not supported');
     test.done();
   });
 };
@@ -124,7 +166,7 @@ exports.RemoveWebhook = function(test) {
     test.ok(req);
     test.ok(res);
     test.equal(res.statusCode, 200);
-    test.equal(res.body, '{"message":"webhook deleted"}');
+    test.equal(res.body, '{"message":"webhook deleted","id":"d55ecc09f4cd1779d592b7c7f4bf3006fcb62a4c"}');
     test.done();
   });
 };

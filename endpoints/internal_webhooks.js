@@ -1,7 +1,7 @@
 
 module.exports = function(config, redis, logger) {
   var internal_middleware = require('../internal/middleware.js')(config, redis, logger);
-  var internal_webhooks = require('../internal/webhooks.js')(redis, logger);
+  var internal_webhooks = require('../internal/webhooks.js')(config, redis, logger);
 
   var endpoints = {
     name: 'InternalWebhooks',
@@ -17,6 +17,21 @@ module.exports = function(config, redis, logger) {
         ],
         version: '1.0.0',
         fn: internal_webhooks.listWebhooks,
+        middleware: [
+          internal_middleware.requireAuth,
+          internal_middleware.requireRepoAccess
+        ]
+      },
+      {
+        name: 'Ping Webhook',
+        description: 'Test a webhook with a sample ping',
+        method: 'POST',
+        path: [
+          '/webhooks/:repo/:id/ping',
+          '/webhooks/:namespace/:repo/:id/ping'
+        ],
+        version: '1.0.0',
+        fn: internal_webhooks.pingWebhook,
         middleware: [
           internal_middleware.requireAuth,
           internal_middleware.requireRepoAccess
