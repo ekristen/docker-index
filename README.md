@@ -1,26 +1,34 @@
 [![Build Status](https://travis-ci.org/ekristen/docker-index.png)](https://travis-ci.org/ekristen/docker-index)
 
-**Version 1.3.0** is out, or at least in release candidacy. It now works with 0.8.x and 0.7.x versions of the docker registry. The whole purpose of this project is to provide the docker masses with an authenticated docker index for their own docker registry that has real repository access controls instead of just using htaccess on a reverse proxy. There is now a *private mode* (which admittedly probably isn't the best name) but its function is to allow people to register using the docker-index but accounts get locked out immediately.
+**Version 1.4.0** is out, or at least in release candidacy. It now works with 0.8.x and 0.7.x versions of the docker registry. 
+
+The purpose of this project is to provide the docker masses with an authenticated docker index for their own docker registry that has real repository access controls instead of just using htaccess on a reverse proxy.
 
 While I don't have any problems using this software, I cannot say that it is 100% without bug or will work with anyone, I know some people have downloaded the project, but I haven received zero feedback as to functionality.
 
+Known to work with registry version 0.7.x and 0.8.x
+
 This is a functioning Docker Index that can be run independent of the Docker Registry software.
 
-# Important
-I'm in the process of writing unit tests, and better documentation. I'm also working on writing API endpoints to facilitate the creation and management of user accounts too, so check by.
+# Features
 
-The documentation below should still be accurate, but if you run into issues, please let me know.
+1. 
 
-# New Command Line Tool
-With the latest code in master, there is now a command line tool that accompanies this index. https://github.com/ekristen/docker-index-cli The purpose of this tool is to easy the administration burden of the index. See https://github.com/ekristen/docker-index-cli/blob/master/README.md for more information.
+# API
 
-## Requirements 
+API Docs Coming Soon
+
+# Command Line Tool
+
+To facilitate working with the `docker-index` more easily, there is a command line tool available. https://github.com/ekristen/docker-index-cli
+
+# Requirements 
 
 1. Docker
 2. Docker Registry
 3. Redis (this stores image and user information, you should run redis in a persistent mode that will meet your needs)
 
-## Installation
+# Installation
 
 The best way to do this is to use docker all the way and to use host mounted volumes for configuration files OR build each app by checking out the code and changing the configuration files.
 
@@ -38,23 +46,19 @@ The best way to do this is to use docker all the way and to use host mounted vol
 
 I'd suggest that you front both the index and the registry using nginx and SSL/TLS and use port 443.
 
-## Management
+# Management
 
 All management is done via the new command line tool over at https://github.com/ekristen/docker-index-cli
 
-### Initial Admin Account
+## Initial Admin Account
 
-When you start the docker index up for the first time a authorization token will be output to standard out, with this token you can create your first admin account. The token expires automatically after 30 minutes or after the first use when adding a user to the system. The token can only be used to add a user.
-
-`docker-index adduser --username="admin" --password="admin" --email="admin@localhost" --admin --token="TOKEN"`
-
+When you start the docker index application for the first time, a first run text will be displayed to standard out. This text will contain the randomly set password for the default `admin` account.
 
 ## Access Levels (Permissions)
 
-There are four access levels (aka permissions) for a namespace and/or repo combination. They are `read`, `write`, `readwrite` `admin`.
+There are three access levels (aka permissions) for a namespace and/or repo combination. They are `read`, `write`, `admin`.
 
 * **read** is pretty self explanatory, gives the user full read access to the namespace and/or namespace repo combo.
 * **write** gives a user write access only, this is useful for automation scripts that you want to only have access to upload to a repo.
-* **readwrite** gives a user read and write access.
 * **admin** gives a user read, write, and delete (not implemented) access to a namespace and/or namespace/repo.
 
