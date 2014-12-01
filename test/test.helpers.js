@@ -1,14 +1,9 @@
 var domain = require('domain');
 var once = require('once');
-var redis = require('redis-mock');
-
-redis._expireCheck = function () {
-  this._toggleExpireCheck(false);
-}
-redis._toggleExpireCheck = function () {}
+var fakeredis = require('fakeredis');
 
 exports.setUp = function(done) {
-  this.r = redis.createClient();
+  this.r = fakeredis.createClient();
   this.helpers = require('../index/helpers.js')(this.r);
   done();
 }
