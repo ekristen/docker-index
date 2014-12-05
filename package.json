@@ -1,6 +1,6 @@
 {
   "name": "docker-index",
-  "version": "1.3.0",
+  "version": "1.4.0-rc1",
   "author": "Erik Kristensen <erik@erikkristensen.com>",
   "license": "LICENSE.md",
   "private": true,
