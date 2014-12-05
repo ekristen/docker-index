@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/ekristen/docker-index.png)](https://travis-ci.org/ekristen/docker-index)
 
-**Version 1.4.0** is out, or at least in release candidacy. It now works with 0.8.x and 0.7.x versions of the docker registry. 
+# Overview
 
 The purpose of this project is to provide the docker masses with an authenticated docker index for their own docker registry that has real repository access controls instead of just using htaccess on a reverse proxy.
 
@@ -12,9 +12,16 @@ This is a functioning Docker Index that can be run independent of the Docker Reg
 
 # Features
 
-1. 
+- Access Controls Per Namespace or Repo
+- Webhooks (For New Images and All Image Pushes)
+  - Can be disabled
+  - History is kept, but can be disabled
+- Internal API to Facilitate Management of the Index
+- Command Line Tool to simplify the management of the Index
+- Account Registration by just doing a docker login (can be disabled)
+  - New accounts can also be disabled by default
 
-# API
+# API Documentation
 
 API Docs Coming Soon
 
