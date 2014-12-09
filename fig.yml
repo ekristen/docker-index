@@ -1,0 +1,36 @@
+redis:
+  image: dockerfile/redis
+#  volumes:
+#    - /data/redis:/data
+
+registry:
+  image: registry:0.8.0
+  ports:
+    - 5000:5000
+  environment:
+    - SETTINGS_FLAVOR=local
+    - STANDALONE=false
+    - INDEX_ENDPOINT=https://index.private.io
+    - DISABLE_TOKEN_AUTH=false
+
+index:
+  image: ekristen/docker-index:1.4.0-rc1
+  ports:
+    - 5100:5100
+  environment:
+    - REGISTRIES=registry.private.io
+    - DISABLE_NEW_ACCOUNTS=true
+  links:
+    - redis:redis
+
+nginx:
+  image: ekristen/docker-index-nginx
+  environment:
+    - INDEX_HOSTNAME=index.private.io
+    - REGISTRY_HOSTNAME=registry.private.io
+  ports:
+    - 80:80
+    - 443:443
+  links:
+    - registry:registry
+    - index:index
