@@ -10,6 +10,8 @@ module.exports = function(config, redis, logger) {
     if (typeof(config.test) != "undefined" && config.test == true) {
       res.setHeader('X-Docker-Registry-Version', '0.8.0');
       res.setHeader('X-Docker-Registry-Standalone', 'false');
+      res.send(200);
+      return next();
     }
     else {
       var url = util.format("%s://%s/v1/_ping", config.registry.protocol, onfig.registries[0]);

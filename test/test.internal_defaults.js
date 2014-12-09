@@ -16,29 +16,6 @@ var SERVER;
 var STR_CLIENT;
 
 exports.setUp = function(done) {
-
-  client.set('users:testing', JSON.stringify({
-    username: 'testing',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing@testing.com',
-    disabled: false,
-    admin: true,
-    permissions: {
-      'testing': 'admin'
-    }
-  }));
-  client.sadd('users', 'testing');
-  
-  client.set('users:testing2', JSON.stringify({
-    username: 'testing2',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing2@testing2.com',
-    admin: false,
-    disabled: false,
-    permissions: {}
-  }));
-  client.sadd('users', 'anonymous');
-  
   SERVER = restify.createServer({
     name: 'myapp',
     version: '1.0.0'
