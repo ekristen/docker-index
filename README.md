@@ -25,6 +25,10 @@ This is a functioning Docker Index that can be run independent of the Docker Reg
 
 Check out the [Installation Document](README.install.md)
 
+# Configuration
+
+Check out the [Configuration Document](README.config.md)
+
 # API Documentation
 
 API Docs Coming Soon
@@ -48,6 +52,5 @@ There are three access levels (aka permissions) for a namespace and/or repo comb
 * **read** is pretty self explanatory, gives the user full read access to the namespace and/or namespace repo combo.
 * **write** gives a user write access only, this is useful for automation scripts that you want to only have access to upload to a repo.
 * **admin** gives a user read, write, and delete (not implemented) access to a namespace and/or namespace/repo.
-
 
 

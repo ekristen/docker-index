@@ -3,10 +3,14 @@ var restify = require('restify');
 var bunyan = require('bunyan');
 var restify_endpoints = require('restify-endpoints');
 
+// Setup logger
 var logger = bunyan.createLogger({
   name: 'docker-index',
   stream: process.stdout,
-  level: config.loglevel
+  level: config.loglevel,
+  serializers: {
+    req: bunyan.stdSerializers.req
+  }
 });
 
 // Setup Redis Connection

@@ -9,6 +9,9 @@ module.exports = {
     host: process.env.REDIS_PORT_6379_TCP_ADDR || 'localhost'
   },
   registries: process.env.REGISTRIES.split(','),
+  registry: {
+    protocol: process.env.REGISTRY_PROTOCOL || 'https'
+  },
   webhooks: {
     disabled: process.env.WEBHOOKS_DISABLED || false, // Globally disable the use of webhooks
     timeout: process.env.WEBHOOKS_TIMEOUT || 3000,   // Time in milliseconds to wait for a successful webhook

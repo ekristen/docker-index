@@ -13,7 +13,7 @@ module.exports = function(config, redis, logger) {
         path: '/_ping',
         version: '1.0.0',
         fn: function(req, res, next) {
-          res.setHeader('X-Docker-Index-Version', '0.0.1');
+          res.setHeader('X-Docker-Index-Version', config.version);
           res.send(200);
           return next();
         }
@@ -22,5 +22,6 @@ module.exports = function(config, redis, logger) {
     ]
   };
 
-  return endpoints
-}
+  return endpoints;
+
+};
