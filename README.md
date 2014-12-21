@@ -4,21 +4,21 @@
 
 The purpose of this project is to provide the docker masses with an authenticated docker index for their own docker registry that has real repository access controls instead of just using htaccess on a reverse proxy.
 
-While I don't have any problems using this software, I cannot say that it is 100% without bug or will work with anyone, I know some people have downloaded the project, but I haven received zero feedback as to functionality.
+Technically now called the Docker Hub (by Docker), this is an independently developed version using the (Docker Hub and Registry Spec)[https://docs.docker.com/reference/api/hub_registry_spec/] and throw a tiny bit of reverse engineering. 
 
-Known to work with registry version 0.7.x and 0.8.x
+This is a functioning Docker Index (Docker Hub) that can be run independent of the Docker Registry software.
 
-This is a functioning Docker Index that can be run independent of the Docker Registry software.
+This project does not have a front-end UI for administration or for viewing of repositories and images, to be able to view this information you will have to use the (command line tool)[https://github.com/ekristen/docker-index-cli] that was written to work with it. 
 
 # Features
 
-- Access Controls Per Namespace or Repo
+- Access Controls Per Namespace or Repo (read, write, admin)
 - Webhooks (For New Images and All Image Pushes)
-  - Can be disabled
-  - History is kept, but can be disabled
+  - Can be disabled in the config
+  - History is kept, but can be disabled in the config
 - Internal API to Facilitate Management of the Index
-- Command Line Tool to simplify the management of the Index
-- Account Registration by just doing a docker login (can be disabled)
+- (Command Line Tool)[https://github.com/ekristen/docker-index-cli] to simplify the management of the Index
+- Account Registration by just doing a docker login (can be disabled in the config)
   - New accounts can also be disabled by default
 
 # Installation
