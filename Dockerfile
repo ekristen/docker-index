@@ -9,14 +9,17 @@ RUN apt-get update
 RUN apt-get -y install nodejs
 
 WORKDIR /opt/app
+
+ADD package.json /tmp/package.json
+RUN cd /tmp && npm install --production && cp -R node_modules /opt/app
+
 ADD . /opt/app
 
 ENV NODE_ENV docker
-
-RUN npm install --production
 
 EXPOSE 5100
 
 ENTRYPOINT ["node"]
 
 CMD ["app.js"]
+

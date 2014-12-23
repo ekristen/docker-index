@@ -2,7 +2,7 @@ var crypto = require('crypto');
 var util = require('util');
 
 module.exports = function(config, redis, logger) {
-  var index_helpers = require('./helpers.js')(redis);
+  var index_helpers = require('./helpers.js')(config, redis);
 
   return {
     requireAuth: function (req, res, next) {
@@ -148,22 +148,13 @@ module.exports = function(config, redis, logger) {
 
           value = JSON.parse(value);
       
-          //redis.del("token:" + sig, function (err) {
-          //  if (err) {
-          //    logger.error({err: err, token: sig});
-          //    res.send(500, err);
-          //    return next();
-          //  }
-
-            if (value.repo == repo && value.access == access) {
-              return next();
-            }
-            else {
-              res.send(401, 'Authorization required');
-              return next();
-            }
-            //});
-      
+          if (value.repo == repo && value.access == access) {
+            return next();
+          }
+          else {
+            res.send(401, 'Authorization required');
+            return next();
+          }
         });
       }
     },

@@ -1,8 +1,8 @@
 
 module.exports = function(config, redis, logger) {
-  var index_helpers = require('../index/helpers.js')(redis);
+  var index_helpers = require('../index/helpers.js')(config, redis, logger);
   var index_middleware = require('../index/middleware.js')(config, redis, logger);
-  var index_users = require('../index/users.js')(redis, logger);
+  var index_users = require('../index/users.js')(config, redis, logger);
 
   var endpoints = {
     name: 'Users',

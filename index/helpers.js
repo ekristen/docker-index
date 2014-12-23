@@ -1,6 +1,7 @@
 var crypto = require('crypto');
 
-module.exports = function(redis) {
+module.exports = function(config, redis, logger) {
+
   return {
 
     generateToken: function (repo, access, cb) {
@@ -12,14 +13,18 @@ module.exports = function(redis) {
       var sha1 = shasum.digest('hex');
 
       redis.set("tokens:" + sha1, JSON.stringify({repo: repo, access: access}), function(err, status) {
-        if (err) cb(err);
-        // TODO: better way to do this?
-        // Set a 10 minute expiration, 10 minutes should be enough time to download images
-        // in the case of a slow internet connection, this could be a problem, but we do not
-        // want unused tokens remaining in the system either
-        redis.expire("tokens:" + sha1, 600, function(err, status) {
-          if (err) cb(err);
+        if (err) {
+          logger.error({err: err, function: 'generateToken'});
+          return cb(err);
+        }
 
+        // Set an expiration so that in the event of a server error
+        // the token is deleted automatically at some point
+        redis.expire("tokens:" + sha1, config.tokens.expiration, function(err, status) {
+          if (err) {
+            logger.error({err: err, function: 'generateToken'});
+            return cb(err);
+          }
           cb(null, sha1);
         });
       });

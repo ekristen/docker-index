@@ -1,7 +1,6 @@
 var crypto = require('crypto');
-var config = require('config');
 
-module.exports = function(redis, logger) {
+module.exports = function(config, redis, logger) {
   return {
     createUser: function (req, res, next) {
       // Validate against a-z0-9_ regexx

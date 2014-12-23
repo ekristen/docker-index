@@ -1,5 +1,7 @@
 redis:
   image: dockerfile/redis
+  ports:
+    - 26379:6379
 #  volumes:
 #    - /data/redis:/registry/data
 
@@ -18,12 +20,15 @@ registry:
 #    - /tmp/registry:/data/registry
 
 index:
-  image: ekristen/docker-index:dev
+  build: .
   ports:
     - 5100:5100
   environment:
+    - NODE_TLS_REJECT_UNAUTHORIZED=0
     - REGISTRIES=registry.private.io
     - DISABLE_NEW_ACCOUNTS=true
+    - NODE_ENV=docker
+    - LOG_LEVEL=debug
   links:
     - redis:redis
 

@@ -1,6 +1,6 @@
 var util = require('util');
 
-module.exports = function(redis, logger) {
+module.exports = function(config, redis, logger) {
 
   return {
 
@@ -17,8 +17,32 @@ module.exports = function(redis, logger) {
 
         logger.debug({namespace: req.params.namespace, repo: req.params.repo});
 
-        res.send(200, JSON.parse(value) || {});
-        return next();
+        redis.keys(util.format("tokens:%s:images:*", req.token_auth.token), function(err, keys) {
+          if (keys.length == 1) {
+            redis.del(keys, function(err, success) {
+              if (err) {
+                logger.error({err: err, function: "repoImagesGet"});
+                res.send(500, err);
+                return next();
+              }
+              
+              redis.expire(util.format("tokens:%s", req.token_auth.token), 60, function(err, success2) {
+                if (err) {
+                  logger.error({err: err, function: "repoImagesGet"});
+                  res.send(500, err);
+                  return next();
+                }
+
+                res.send(200, JSON.parse(value) || {});
+                return next();
+              })
+            })
+          }
+          else {
+            res.send(200, JSON.parse(value) || {});
+            return next();
+          }
+        })
       });
     },
 

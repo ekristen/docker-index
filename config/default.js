@@ -22,6 +22,14 @@ module.exports = {
     timeout: 3000,   // Time in milliseconds to wait for a successful webhook
     history: 30,     // Number of history records to keep per webhook (0 or false to disable)
   },
+  tokens: {
+    // Do not touch this setting unless you know what you are doing.
+    // It is a backup, if a connection is broken or an error occurs
+    // we want all tokens to be expired automatically after a certain
+    // period of time (10 minutes). If an error occurs, then a retry
+    // will be done and new tokens will be generated.
+    expiration: 600
+  },
   disable_account_registration: false,
   disable_new_accounts: true
 }

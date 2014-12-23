@@ -1,7 +1,7 @@
 var async = require('async');
 var util = require('util');
 
-module.exports = function(redis, logger) {
+module.exports = function(config, redis, logger) {
 
   return {
     
@@ -85,7 +85,10 @@ module.exports = function(redis, logger) {
               if (err) {
                 cb(err);
               }
-              redis.expire(token_key, 60, function(err, resp2) {
+
+              // This expiration is merely for if an error occurs
+              // we want the token to be invalidated automatically
+              redis.expire(token_key, config.tokens.expiration, function(err, resp2) {
                 if (err) {
                   cb(err);
                 }
