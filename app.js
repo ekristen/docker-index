@@ -8,6 +8,7 @@ var logger = bunyan.createLogger({
   name: 'docker-index',
   stream: process.stdout,
   level: config.loglevel,
+  src: true,
   serializers: {
     req: bunyan.stdSerializers.req
   }
@@ -33,9 +34,9 @@ var server = restify.createServer({
 });
 
 // Catch unhandled exceptions and log it!
-//server.on('uncaughtException', function (req, res, route, err) {
-//  console.log(err.stack);
-//});
+server.on('uncaughtException', function (req, res, route, err) {
+  logger.error({err: err}, 'uncaughtException');
+});
 
 // Basic Restify Middleware
 server.use(restify.acceptParser(server.acceptable));
@@ -50,10 +51,7 @@ server.use(restify.bodyParser({
 
 // Audit logging to stdout via bunyan
 server.on('after', restify.auditLogger({
-  log: bunyan.createLogger({
-    name: 'audit',
-    stream: process.stdout
-  })
+  log: logger
 }));
 
 // Attach our endpoints
