@@ -25,6 +25,7 @@ module.exports = function(config, redis, logger) {
             logger.error({err: err, function: 'generateToken'});
             return cb(err);
           }
+
           cb(null, sha1);
         });
       });

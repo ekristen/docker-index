@@ -2,19 +2,21 @@ var domain = require('domain');
 var once = require('once');
 var fakeredis = require('fakeredis');
 
-exports.setUp = function(done) {
-  this.r = fakeredis.createClient();
-  this.helpers = require('../index/helpers.js')(this.r);
-  done();
-}
+var config = {
+  tokens: {
+    expiration: 600
+  }
+};
 
-exports.tearDown = function(done) {
-  this.r.end();
-  done();
-}
+var logger = {};
+logger.error = function() {};
+logger.debug = function() {};
+
+var client  = fakeredis.createClient();
+var helpers = require('../index/helpers.js')(config, client, logger);
 
 exports.GenerateToken = function(test) {
-  this.helpers.generateToken('test_repo', 'test_access', function(err, token) {
+  helpers.generateToken('test_repo', 'test_access', function(err, token) {
     test.ok(token, "token generated");
     test.done();
   });

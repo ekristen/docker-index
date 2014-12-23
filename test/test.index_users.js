@@ -6,7 +6,7 @@ var config = require('config');
 
 var client = fakeredis.createClient();
 
-var users = require('../index/users')(client);
+var users = require('../index/users')(config, client);
 
 var SERVER;
 var STR_CLIENT;
