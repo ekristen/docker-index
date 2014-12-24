@@ -7,25 +7,32 @@ module.exports = function(redis, logger) {
   var endpoints = {};
 
   endpoints.listUsers = function(req, res, next) {
-    redis.smembers('users', function(err, members) {
-      res.send(200, members);
+    var users = [];
+    redis.createKeyStream({
+      gte: '!users'
+    })
+    .on('data', function(key) {
+      users.push(key.split('!')[2]);
+    })
+    .on('end', function() {
+      res.send(200, users);
       return next();
     });
   };
 
   endpoints.getUser = function(req, res, next) {
-    redis.get('users:' + req.params.username, function(err, user) {
-      if (err) {
+    redis.get(redis.key('users', req.params.username), function(err, user) {
+      if (err && err.status != '404') {
         res.send(500, {message: error, error: true});
         return next();
       }
 
-      if (user == null) {
+      if ((err && err.status == '404') || user == null) {
         res.send(404, {message: 'invalid user', error: false});
         return next();
       }
 
-      var user_object = JSON.parse(user);
+      var user_object = user;
 
       delete user_object.password;
 
@@ -35,32 +42,33 @@ module.exports = function(redis, logger) {
   };
 
   endpoints.getUserPermissions = function(req, res, next) {
-    redis.get('users:' + req.params.username, function(err, user) {
-      if (err) {
+    redis.get(redis.key('users', req.params.username), function(err, user) {
+      if (err && err.status != '404') {
         res.send(500, {message: error, error: true});
         return next();
       }
 
-      if (user == null) {
+      if ((err && err.status == '404') || user == null) {
         res.send(404, {message: 'invalid user', error: false});
         return next();
       }
 
-      var user_object = JSON.parse(user);
-
-      res.send(200, user_object.permissions);
+      res.send(200, user.permissions);
       return next();
     })
   };
 
   endpoints.addUserPermission = function(req, res, next) {
-    redis.get('users:' + req.params.username, function(err, get_user) {
-      if (get_user == null) {
-        res.send(404, {message: 'invalid user'});
+    redis.get(redis.key('users', req.params.username), function(err, user) {
+      if (err && err.status != '404') {
+        res.send(500, {err: err, error: true})
         return next();
       }
 
-      var user = JSON.parse(get_user);
+      if ((err && err.status == '404') || user == null) {
+        res.send(404, {message: 'invalid user'});
+        return next();
+      }
       
       if (!user.permissions) {
         user.permissions = {};
@@ -68,7 +76,7 @@ module.exports = function(redis, logger) {
 
       user.permissions[req.body.repo] = req.body.access;
 
-      redis.set('users:' + req.params.username, JSON.stringify(user), function(err) {
+      redis.set(redis.key('users', req.params.username), user, function(err) {
         res.send(202, {success: true});
         return next();
       });
@@ -76,19 +84,22 @@ module.exports = function(redis, logger) {
   };
   
   endpoints.removeUserPermission = function(req, res, next) {
-    redis.get('users:' + req.params.username, function(err, get_user) {
-      if (get_user == null) {
+    redis.get(redis.key('users', req.params.username), function(err, user) {
+      if (err && err.status != '404') {
+        res.send(500, {err: err, error: true})
+        return next();
+      }
+
+      if ((err && err.status == '404') || user == null) {
         res.send(404, {message: 'invalid user'});
         return next();
       }
 
-      var user = JSON.parse(get_user);
-
       delete user.permissions[req.params.repo];
 
-      redis.set('users:' + req.params.username, JSON.stringify(user), function(err) {
+      redis.set(redis.key('users', req.params.username), user, function(err) {
         if (err) {
-          res.send(500, {success: false, error: err});
+          res.send(500, {error: true, error: err});
           return next();
         }
 
@@ -97,7 +108,6 @@ module.exports = function(redis, logger) {
       });
     });
   };
-
 
   endpoints.createUser = function(req, res, next) {
     if (!req.body.username) {
@@ -110,8 +120,8 @@ module.exports = function(redis, logger) {
       return next(new restify.errors.MissingParameterError("email field is required"));
     }
 
-    redis.get('users:' + req.body.username, function(err, user) {
-      if (err) {
+    redis.get(redis.key('users', req.body.username), function(err, user) {
+      if (err && err.status != '404') {
         res.send(500, {message: err, error: true});
         return next();
       }
@@ -133,54 +143,34 @@ module.exports = function(redis, logger) {
         admin: req.body.admin || false
       };
 
-      redis.set('users:' + req.body.username, JSON.stringify(userObj), function(err) {
+      redis.set(redis.key('users', req.body.username), userObj, function(err) {
         if (err) {
           logger.error({err: err}, "Redis Error -- Unable to Set Key");
           res.send(500, {err: err});
           return next();
         }
 
-        redis.sadd('users', req.body.username, function(err) {
-          if (err) {
-            logger.error({err: err}, "Redis Error -- Unable to Set Key");
-            res.send(500, {err: err});
-            return next();
-          }
-
-          if (req.authmethod == 'token') {
-            redis.del('_initial_auth_token', function(err) {})
-          }
-
-          res.send(201, {message: "account created", user: req.body.username});
-          return next();
-        });
+        res.send(201, {message: "account created", user: req.body.username});
+        return next();
       });
     });
   };
 
   endpoints.enableUser = function(req, res, next) {
-    redis.get('users:' + req.params.username, function(err, user_json) {
-      if (err) {
+    redis.get(redis.key('users', req.params.username), function(err, user) {
+      if (err && err.status != '404') {
         res.send(500, {message: err, error: true});
         return next();
       }
 
-      if (user_json == null) {
+      if ((err && err.status == '404') || user == null) {
         res.send(409, {message: 'user does not exist', error: true});
         return next();
       }
       
-      try {
-        var user = JSON.parse(user_json);
-      }
-      catch (e) {
-        return next(e);
-      }
+      user.disabled = false;
       
-      var userObj = user;
-      userObj.disabled = false;
-      
-      redis.set('users:' + req.params.username, JSON.stringify(userObj), function(err) {
+      redis.set(redis.key('users', req.params.username), user, function(err) {
         if (err) {
           logger.error({err: err}, "Redis Error -- Unable to Set Key");
           res.send(500, {err: err});
@@ -194,28 +184,20 @@ module.exports = function(redis, logger) {
   };
 
   endpoints.disableUser = function(req, res, next) {
-    redis.get('users:' + req.params.username, function(err, user_json) {
-      if (err) {
+    redis.get(redis.key('users', req.params.username), function(err, user) {
+      if (err && err.status != '404') {
         res.send(500, {message: err, error: true});
         return next();
       }
       
-      if (user_json == null) {
+      if ((err && err.status == '404') && user == null) {
         res.send(409, {message: 'user does not exist', error: true});
         return next();
       }
+
+      user.disabled = true;
       
-      try {
-        var user = JSON.parse(user_json);
-      }
-      catch (e) {
-        return next(e);
-      }
-      
-      var userObj = user;
-      userObj.disabled = true;
-      
-      redis.set('users:' + req.params.username, JSON.stringify(userObj), function(err) {
+      redis.set(redis.key('users', req.params.username), user, function(err) {
         if (err) {
           logger.error({err: err}, "Redis Error -- Unable to Set Key");
           res.send(500, {err: err});
