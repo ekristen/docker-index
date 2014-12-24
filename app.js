@@ -2,6 +2,7 @@ var config = require('config');
 var restify = require('restify');
 var bunyan = require('bunyan');
 var restify_endpoints = require('restify-endpoints');
+var datastore = require('./app/datastore/index.js');
 
 // Setup logger
 var logger = bunyan.createLogger({
@@ -14,17 +15,10 @@ var logger = bunyan.createLogger({
   }
 });
 
-// Setup Redis Connection
-var redis = require('redis').createClient(config.redis.port, config.redis.host);
-
-redis.on('error', function(err) {
-  logger.error({domain: 'redis', err: err, stack: err.stack});
-});
-
 // Setup Restify Endpoints
 var endpoints = new restify_endpoints.EndpointManager({
   endpointpath: __dirname + '/endpoints',
-  endpoint_args: [config, redis, logger]
+  endpoint_args: [config, datastore, logger]
 });
 
 // Create our Restify server
@@ -62,5 +56,5 @@ server.listen(config.app.port, function () {
   console.log('%s listening at %s', server.name, server.url);
 });
 
-require('./lib/firsttime.js')(config, redis);
-require('./lib/upgrades.js')(config, redis);
+//require('./lib/firsttime.js')(config, );
+//require('./lib/upgrades.js')(config, redis);

@@ -1,3 +1,5 @@
 runtime.json
 node_modules
 local.js
+db
+testdb
