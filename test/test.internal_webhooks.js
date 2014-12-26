@@ -2,13 +2,14 @@ var fakeredis = require('fakeredis');
 var request = require('supertest');
 var restify = require('restify');
 var crypto = require('crypto');
+var datastore = require('../app/datastore/index.js');
 
 var logger = {
   debug: function() { },
   error: function() { }
 }
 
-var client = fakeredis.createClient();
+var client = datastore({path: './testdb'});
 
 var webhooks = require('../internal/webhooks')({}, client, logger);
 var middleware = require('../internal/middleware')({}, client, logger);
@@ -17,28 +18,6 @@ var SERVER;
 var STR_CLIENT;
 
 exports.setUp = function(done) {
-
-  client.set('users:testing', JSON.stringify({
-    username: 'testing',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing@testing.com',
-    disabled: false,
-    admin: true,
-    permissions: {
-      'testing': 'admin'
-    }
-  }));
-  client.sadd('users', 'testing');
-  
-  client.set('users:testing2', JSON.stringify({
-    username: 'testing2',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing2@testing2.com',
-    admin: false,
-    disabled: false,
-    permissions: {}
-  }));
-  client.sadd('users', 'anonymous');
   
   SERVER = restify.createServer({
     name: 'myapp',
@@ -64,11 +43,24 @@ exports.setUp = function(done) {
           retry: false
       });
 
+      client.set(client.key('users', 'testing'), {
+        username: 'testing',
+        password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
+        email: 'testing@testing.com',
+        disabled: false,
+        admin: true,
+        permissions: {
+          'testing': 'admin',
+          'base': 'admin'
+        }
+      });
+
       done()
   });
 };
 
 exports.tearDown = function(done) {
+  client.createKeyStream().on('data', function(key) { client.del(key); });
   STR_CLIENT.close();
   SERVER.close(done);
 };
@@ -100,14 +92,27 @@ exports.ListWebhooks = function(test) {
       authorization: 'Basic ' + new Buffer("testing:testing").toString('base64')
     }
   };
-  STR_CLIENT.get(options, function(err, req, res, data) {
-    test.ifError(err);
-    test.ok(req);
-    test.ok(res);
-    test.equal(res.statusCode, 200);
-    test.equal(res.body, '[{"active":"1","existing":"false","id":"d55ecc09f4cd1779d592b7c7f4bf3006fcb62a4c","new":"true","url":"http://www.example.com/hook"}]');
-    test.done();
-  });
+  var body = {
+    url: 'http://www.example.com/hook'
+  };
+  STR_CLIENT.post(options, body, function(err, req, res, data) {
+    
+    var options = {
+      path: '/webhooks/base/debian',
+      headers: {
+        authorization: 'Basic ' + new Buffer("testing:testing").toString('base64')
+      }
+    };
+    STR_CLIENT.get(options, function(err, req, res, data) {
+      test.ifError(err);
+      test.ok(req);
+      test.ok(res);
+      test.equal(res.statusCode, 200);
+      test.equal(res.body, '[{"id":"d55ecc09f4cd1779d592b7c7f4bf3006fcb62a4c","url":"http://www.example.com/hook","new":"true","existing":"false","active":true}]');                            
+      test.done();
+    });
+
+  });  
 };
 
 exports.AddWebhookNewExistingEvents = function(test) {
@@ -153,20 +158,35 @@ exports.AddWebhookInvalidEvent = function(test) {
 };
 
 exports.RemoveWebhook = function(test) {
-  var webhook_id = crypto.createHash('sha1').update('http://www.example.com/hook').digest('hex');
-
+  
   var options = {
-    path: '/webhooks/base/debian/' + webhook_id,
+    path: '/webhooks/base/debian',
     headers: {
       authorization: 'Basic ' + new Buffer("testing:testing").toString('base64')
     }
   };
-  STR_CLIENT.del(options, function(err, req, res, data) {
-    test.ifError(err);
-    test.ok(req);
-    test.ok(res);
-    test.equal(res.statusCode, 200);
-    test.equal(res.body, '{"message":"webhook deleted","id":"d55ecc09f4cd1779d592b7c7f4bf3006fcb62a4c"}');
-    test.done();
+  var body = {
+    url: 'http://www.example.com/hook'
+  };
+  STR_CLIENT.post(options, body, function(err, req, res, data) {
+
+    var webhook_id = crypto.createHash('sha1').update('http://www.example.com/hook').digest('hex');
+
+    var options = {
+      path: '/webhooks/base/debian/' + webhook_id,
+      headers: {
+        authorization: 'Basic ' + new Buffer("testing:testing").toString('base64')
+      }
+    };
+    STR_CLIENT.del(options, function(err, req, res, data) {
+      test.ifError(err);
+      test.ok(req);
+      test.ok(res);
+      test.equal(res.statusCode, 200);
+      test.equal(res.body, '{"message":"webhook deleted","id":"d55ecc09f4cd1779d592b7c7f4bf3006fcb62a4c"}');
+      test.done();
+    });
+
   });
+  
 };

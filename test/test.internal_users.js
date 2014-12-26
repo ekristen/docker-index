@@ -10,7 +10,6 @@ var logger = {
 
 var client = datastore({path: './testdb'});
 
-
 var users = require('../internal/users')(client, logger);
 
 var SERVER;

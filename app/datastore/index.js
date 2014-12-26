@@ -20,6 +20,19 @@ module.exports = datastore = function(opts) {
 
   db.set = db.put;
   db.expire = db.ttl;
+  db.exists = function(key, callback) {
+    db.get(key, function(err, result) {
+      if (err && err.status !='404') {
+        return callback(err);
+      }
+      else if (err && err.status == '404') {
+        return callback(null, false);
+      }
+      else {
+        return callback(null, true);
+      }
+    })
+  };
 
   return db;  
 };
