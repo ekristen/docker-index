@@ -6,19 +6,38 @@ module.exports = function(config, redis, logger) {
 
     repoImagesGet: function (req, res, next) { 
       if (!req.params.namespace)
-        req.params.namespace = 'library';  
+        req.params.namespace = 'library';
 
-      redis.get("images:" + req.params.namespace + '_' + req.params.repo, function(err, value) {
-        if (err) {
+      redis.get(redis.key('images', req.params.namespace, req.params.repo), function(err, images) {
+        if (err && err.status != '404') {
           logger.error({err: err, function: "repoImagesGet"});
           res.send(500, err);
           return next();
         }
+        
+        if (err && err.status == '404') {
+          images = {};
+        }
 
         logger.debug({namespace: req.params.namespace, repo: req.params.repo});
 
-        redis.keys(util.format("tokens:%s:images:*", req.token_auth.token), function(err, keys) {
-          if (keys.length == 1) {
+        var key_count = 0;
+
+        redis.createKeyStream({
+          gte: redis.key('tokens', req.token_auth.token, 'images'),
+          lte: redis.key('tokens', req.token_auth.token, 'images') + '\xFF'
+        })
+        .on('error', function(err) {
+          logger.error({err: err});
+          res.send(500, err);
+          return next();
+        })
+        .on('data', function(key) {
+          console.log(key)
+          ++key_count;
+        })
+        .on('end', function() {
+          if (key_count == 1) {
             redis.del(keys, function(err, success) {
               if (err) {
                 logger.error({err: err, function: "repoImagesGet"});
@@ -33,16 +52,16 @@ module.exports = function(config, redis, logger) {
                   return next();
                 }
 
-                res.send(200, JSON.parse(value) || {});
+                res.send(200, images);
                 return next();
               })
             })
           }
           else {
-            res.send(200, JSON.parse(value) || {});
+            res.send(200, images);
             return next();
           }
-        })
+        });
       });
     },
 
@@ -50,32 +69,16 @@ module.exports = function(config, redis, logger) {
       if (!req.params.namespace)
         req.params.namespace = 'library';
 
-      var name = req.params.namespace + '_' + req.params.repo;
-
-      redis.sismember('images', name, function(err, status) {
+      redis.set(redis.key('images', req.params.namespace, req.params.repo), {}, function(err, success) {
         if (err) {
           logger.error({err: err, function: "repoImagesPut:sismember"});
           res.send(500, err);
           return next();
         }
-
-        if (status == 0) {
-          redis.sadd('images', name, function(err) {
-            if (err) {
-              logger.error({err: err, function: "repoImagesPut:sadd"});
-              res.send(500, err);
-              return next();
-            }
-
-            res.send(204);
-            return next();
-          });
-        }
-        else {
-          res.send(204);
-          return next();
-        }
-      })
+  
+        res.send(204);
+        return next();
+      });
     },
     
     repoImagesLayerAccess: function (req, res, next) {

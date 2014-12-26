@@ -32,6 +32,9 @@ module.exports = datastore = function(opts) {
       }
     })
   };
+  db.expire = function(key, expiration, callback) {
+    db.ttl(key, expiration, callback);
+  };
 
   return db;  
 };
