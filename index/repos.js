@@ -5,7 +5,7 @@ module.exports = function(config, redis, logger) {
 
   return {
     
-    repoGet: function (req, res, next) {
+    repoPut: function (req, res, next) {
       if (!req.params.namespace)
         req.params.namespace = 'library';
         
@@ -14,8 +14,8 @@ module.exports = function(config, redis, logger) {
         return next();
       }
 
-      redis.get('images:' + req.params.namespace + '_' + req.params.repo, function(err, value) {
-        if (err) {
+      redis.get(redis.key('images', req.params.namespace, req.params.repo), function(err, value) {
+        if (err && err.status != '404') {
           logger.error({err: err, namespace: req.params.namespace, repo: req.params.repo});
           res.send(500, err);
           return next();
@@ -24,10 +24,8 @@ module.exports = function(config, redis, logger) {
         var images = {};
         var tags = {};
 
-        if (value == null)
+        if ((err && err.status == '404') || value == null)
           var value = []
-        else
-          var value = JSON.parse(value);
         
         req.original_images = value;
 
@@ -70,9 +68,8 @@ module.exports = function(config, redis, logger) {
   
           final_images.push(images[key]);
         }
-  
-        var image_key = util.format("images:%s_%s", req.params.namespace, req.params.repo);
-        redis.set(image_key, JSON.stringify(final_images), function(err, status) {
+
+        redis.set(redis.key('images', req.params.namespace, req.params.repo), final_images, function(err, status) {
           if (err) {
             logger.error({err: err, type: 'redis', namespace: req.params.namespace, repo: req.params.repo});
             res.send(500, err);
@@ -80,7 +77,7 @@ module.exports = function(config, redis, logger) {
           }
 
           async.each(final_images, function(image, cb) {
-            var token_key = util.format("tokens:%s:images:%s", req.token_auth.token, image.id);
+            var token_key = redis.key('tokens', req.token_auth.token, 'images', image.id);
             redis.set(token_key, 1, function(err, resp) {
               if (err) {
                 cb(err);

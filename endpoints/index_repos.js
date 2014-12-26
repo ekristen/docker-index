@@ -18,7 +18,7 @@ module.exports = function(config, redis, logger) {
           '/v1/repositories/:namespace/:repo'
         ],
         version: '1.0.0',
-        fn: index_repos.repoGet,
+        fn: index_repos.repoPut,
         middleware: [
           index_middleware.requireAuth
         ],

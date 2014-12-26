@@ -73,7 +73,7 @@ exports.tearDown = function(done) {
   SERVER.close(done);
 }
 
-exports.RepoTests = {
+exports.ImagesTests = {
   PutImages: function(test) {
     var options = {
       path: '/v1/repositories/base/debian/images',
