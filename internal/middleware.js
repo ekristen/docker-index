@@ -21,14 +21,14 @@ module.exports = function(config, redis, logger) {
         var buff  = new Buffer(auth[1], 'base64');
         var plain = buff.toString();
         var creds = plain.split(':');
-        var user  = creds[0];
-        var pass  = creds[1];
+        var username  = creds[0];
+        var password  = creds[1];
 
         var shasum = crypto.createHash('sha1');
-        shasum.update(pass);
+        shasum.update(password);
         var sha1pwd = shasum.digest('hex');
 
-        redis.get(redis.key('users', user), function(err, user) {
+        redis.get(redis.key('users', username), function(err, user) {
           if (err && err.status != '404') {
             logger.error({err: err, user: user});
             res.send(500, err);

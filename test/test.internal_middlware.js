@@ -2,13 +2,14 @@ var fakeredis = require('fakeredis');
 var request = require('supertest');
 var restify = require('restify');
 var crypto = require('crypto');
+var datastore = require('../app/datastore/index.js');
 
 var logger = {
   debug: function() { },
   error: function() { }
 }
 
-var client = fakeredis.createClient();
+var client = datastore({path: './testdb'});
 
 var middleware = require('../internal/middleware')({}, client, logger);
 
@@ -16,52 +17,6 @@ var SERVER;
 var STR_CLIENT;
 
 exports.setUp = function(done) {
-
-  client.set('users:testing', JSON.stringify({
-    username: 'testing',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing@testing.com',
-    disabled: false,
-    admin: true,
-    permissions: {
-      'testing': 'admin'
-    }
-  }));
-  client.sadd('users', 'testing');
-  
-  client.set('users:testing2', JSON.stringify({
-    username: 'testing2',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing2@testing2.com',
-    admin: false,
-    disabled: true,
-    permissions: {}
-  }));
-  client.sadd('users', 'testing2');
-  
-  client.set('users:testing3', JSON.stringify({
-    username: 'testing3',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing3@testing3.com',
-    admin: false,
-    disabled: false,
-    permissions: {
-      'testing': 'admin'
-    }
-  }));
-  client.sadd('users', 'testing3');
-  
-  client.set('users:testing4', JSON.stringify({
-    username: 'testing4',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing3@testing3.com',
-    admin: false,
-    disabled: false,
-    permissions: {
-      'testing': 'read'
-    }
-  }));
-  client.sadd('users', 'testing4');
   
   SERVER = restify.createServer({
     name: 'myapp',
@@ -89,11 +44,52 @@ exports.setUp = function(done) {
           retry: false
       });
 
-      done()
+      var ws = client.createWriteStream();
+      ws.on('close', function(err) {
+        done();
+      });
+      ws.write({ key: client.key('users', 'testing'), value: {
+        username: 'testing',
+        password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
+        email: 'testing@testing.com',
+        disabled: false,
+        admin: true,
+        permissions: { 'testing': 'admin' }
+      }});
+      ws.write({ key: client.key('users', 'testing2'), value: {
+        username: 'testing2',
+        password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
+        email: 'testing2@testing2.com',
+        admin: false,
+        disabled: true,
+        permissions: {}
+      }});
+      ws.write({ key: client.key('users', 'testing3'), value: {
+        username: 'testing3',
+        password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
+        email: 'testing3@testing3.com',
+        admin: false,
+        disabled: false,
+        permissions: {
+          'testing': 'admin'
+        }
+      }});
+      ws.write({ key: client.key('users', 'testing4'), value: {
+        username: 'testing4',
+        password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
+        email: 'testing3@testing3.com',
+        admin: false,
+        disabled: false,
+        permissions: {
+          'testing': 'read'
+        }
+      }});
+      ws.end();
   });
 };
 
 exports.tearDown = function(done) {
+  client.createKeyStream().on('data', function(key) { client.del(key); });
   STR_CLIENT.close();
   SERVER.close(done);
 };
@@ -102,7 +98,7 @@ exports.InvalidUser = function(test) {
   var options = {
     path: '/require/auth',
     headers: {
-      authorization: 'Basic ' + new Buffer("testing3:testing3").toString('base64')
+      authorization: 'Basic ' + new Buffer("testing5:testing5").toString('base64')
     }
   };
   STR_CLIENT.get(options, function(err, req, res, data) {
