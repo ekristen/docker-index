@@ -3,7 +3,6 @@ var ttl   = require('level-ttl');
 var lkey  = require('level-key');
 
 module.exports = datastore = function(opts) {
-
   var db = level(opts.path || "./db", { valueEncoding: 'json' });
 
   db = lkey(db);

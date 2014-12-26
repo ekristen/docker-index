@@ -8,7 +8,7 @@ var logger = {
   error: function() { }
 }
 
-var client = datastore({path: './testdb'});
+var client = datastore({path: './test/iuserdb'});
 
 var users = require('../internal/users')(client, logger);
 

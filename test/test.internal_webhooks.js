@@ -9,7 +9,7 @@ var logger = {
   error: function() { }
 }
 
-var client = datastore({path: './testdb'});
+var client = datastore({path: './test/iwebhooksdb'});
 
 var webhooks = require('../internal/webhooks')({}, client, logger);
 var middleware = require('../internal/middleware')({}, client, logger);

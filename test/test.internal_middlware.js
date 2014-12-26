@@ -3,13 +3,15 @@ var request = require('supertest');
 var restify = require('restify');
 var crypto = require('crypto');
 var datastore = require('../app/datastore/index.js');
+var path = require("path");
+var fs = require('fs');
 
 var logger = {
   debug: function() { },
   error: function() { }
 }
 
-var client = datastore({path: './testdb'});
+var client = datastore({path: './test/imiddledb'});
 
 var middleware = require('../internal/middleware')({}, client, logger);
 

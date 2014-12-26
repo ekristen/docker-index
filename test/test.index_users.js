@@ -4,7 +4,7 @@ var restify = require('restify');
 var config = require('config');
 var datastore = require('../app/datastore/index.js')
 
-var client = datastore({path: './testdb'});
+var client = datastore({path: './test/iusersdb'});
 client.createKeyStream().on('data', function(data) { client.del(data); });
 
 var users = require('../index/users')(config, client);
