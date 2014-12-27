@@ -5,7 +5,6 @@ var lkey  = require('level-key');
 module.exports = datastore = function(opts) {
   var db = level(opts.path || "./db", { valueEncoding: 'json' });
 
-  hooks(db);
   db = lkey(db);
 
   ttl(db);
