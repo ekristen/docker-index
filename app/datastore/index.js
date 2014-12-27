@@ -51,7 +51,7 @@ module.exports = datastore = function(opts) {
     if (args.length == 1) return '!' + arguments[0];
   
     var key = args.pop();
-    return '!' + args.join(':') + ':' + key;
+    return '!' + args.join('#') + '!' + key;
   }; 
 
   return db;  

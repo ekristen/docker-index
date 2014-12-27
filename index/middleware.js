@@ -161,5 +161,13 @@ module.exports = function(config, redis, logger) {
       }
     },
 
+    expireToken: function(req, res) {
+      redis.expire(redis.key('tokens', req.token_auth.token), 60 * 1000, function(err) {
+        if (err) {
+          logger.error(err, 'unable to expire token');
+        }
+      });
+    }, // end expireToken
+
   }; // end return
 }; // end module.exports

@@ -24,50 +24,8 @@ module.exports = function(config, redis, logger) {
         var key_count = 0;
         var keys = null;
 
-        redis.createKeyStream({
-          gte: redis.key('tokens', req.token_auth.token, 'images'),
-          lte: redis.key('tokens', req.token_auth.token, 'images') + '\xFF'
-        })
-        .on('error', function(err) {
-          logger.error({err: err});
-          res.send(500, err);
-          return next();
-        })
-        .on('data', function(key) {
-          console.log('KEKKKKKEKKEKEKKEKE', key)
-          keys = key;
-          ++key_count;
-        })
-        .on('end', function() {
-          if (key_count == 1000) {
-            redis.del(keys, function(err, success) {
-              if (err) {
-                logger.error({err: err, function: "repoImagesGet"});
-                res.send(500, err);
-                return next();
-              }
-              
-              redis.expire(redis.key('tokens', req.token_auth.token), 60, function(err, success2) {
-                if (err) {
-                  logger.error({err: err, function: "repoImagesGet"});
-                  res.send(500, err);
-                  return next();
-                }
-
-                res.send(200, images);
-                return next();
-              })
-            })
-          }
-          else {
-            redis.expire(redis.key('tokens', req.token_auth.token), 60 * 1000, function(err) {
-              next.ifError(err);
-
-              res.send(200, images)
-              return next();
-            })
-          }
-        });
+        res.send(200, images)
+        return next();
       });
     },
 
