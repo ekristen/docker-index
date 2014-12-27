@@ -50,53 +50,6 @@ server.on('after', restify.auditLogger({
   log: logger
 }));
 
-server.get('/keys', function(req, res, next) {
-  var all_keys = [];
-  datastore.createKeyStream()
-  .on('data', function(data) { all_keys.push(data); })
-  .on('end', function() {
-    res.writeHead(200, {
-      'Content-Type': 'text/html',
-      'Content-Length': JSON.stringify(all_keys, 0, 4).replace('\n', '<br>').length
-    });
-    res.write(JSON.stringify(all_keys, 0, 4).replace('\n', '<br>'));
-    res.end();
-  })
-})
-server.get('/keys/tokens', function(req, res, next) {
-  var all_keys = [];
-  datastore.createKeyStream({
-    gte: datastore.key('tokens'),
-    lte: datastore.key('tokens') + '\xFF'
-  })
-  .on('data', function(data) { all_keys.push(data); })
-  .on('end', function() {
-    res.writeHead(200, {
-      'Content-Type': 'text/html',
-      'Content-Length': JSON.stringify(all_keys, 0, 4).replace('\n', '<br>').length
-    });
-    res.write(JSON.stringify(all_keys, 0, 4).replace('\n', '<br>'));
-    res.end();
-  })
-})
-server.get('/keys/tokens/clear', function(req, res, next) {
-  datastore.createKeyStream({
-    gte: datastore.key('tokens'),
-    lte: datastore.key('tokens') + '\xFF'
-  }).on('data', function(key) { datastore.del(key) });
-  res.send(200, 'OK');
-})
-server.get('/keys/clear', function(req, res, next) {
-  datastore.createKeyStream().on('data', function(key) { datastore.del(key) });
-  res.send(200, 'OK');
-})
-server.get('/keys/:key', function(req, res, next) {
-  var key = datastore.key.call(datastore, req.params.key.split('_'))
-  datastore.get(key, function(err, value) {
-    return res.send(200, {key: key, value: value});
-  });
-});
-
 // Attach our endpoints
 endpoints.attach(server);
 
@@ -108,4 +61,3 @@ server.listen(config.app.port, function () {
 require('./lib/firsttime.js')(config, datastore);
 //require('./lib/upgrades.js')(config, redis);
 
-//datastore.hooks.post(function (ch) { console.log(ch); });
