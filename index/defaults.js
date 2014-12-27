@@ -14,7 +14,6 @@ module.exports = function(config, redis, logger) {
     }
     else {
       var url = util.format("%s://%s/v1/_ping", config.registry.protocol, config.registries[0]);
-      console.log(url);
       request.get(url, function(err, response, body) {
         next.ifError(err);
 

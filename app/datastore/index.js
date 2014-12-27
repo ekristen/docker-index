@@ -1,11 +1,14 @@
 var level = require('level-hyper');
 var ttl   = require('level-ttl');
 var lkey  = require('level-key');
+var hooks = require('level-hooks');
 
 module.exports = datastore = function(opts) {
   var db = level(opts.path || "./db", { valueEncoding: 'json' });
 
-  db = lkey(db);
+  hooks(db);
+  //db = lkey(db);
+
   ttl(db);
   db.methods = db.methods || {};
   db.methods.ttl = { type: 'async' };
@@ -32,9 +35,24 @@ module.exports = datastore = function(opts) {
       }
     })
   };
-  db.expire = function(key, expiration, callback) {
-    db.ttl(key, expiration, callback);
-  };
+
+  db.methods.key = { type: 'sync' };
+  db.key = function() {
+
+    var args = arguments[0];
+    if (!Array.isArray(arguments[0])) {
+      args = [].slice.call(arguments);
+    }
+
+    if (args.length < 1) {
+      throw new Error('Not enough arguments');
+    }
+ 
+    if (args.length == 1) return '!' + arguments[0];
+  
+    var key = args.pop();
+    return '!' + args.join(':') + ':' + key;
+  }; 
 
   return db;  
 };

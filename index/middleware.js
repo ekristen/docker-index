@@ -137,6 +137,8 @@ module.exports = function(config, redis, logger) {
 
         req.token_auth = { token: sig, repo: repo, access: access };
 
+        logger.debug(req.token_auth, 'token auth');
+
         redis.get(redis.key('tokens', sig), function(err, token) {
           if (err && err.status != '404') {
             logger.error({err: err, token: sig});
@@ -153,7 +155,7 @@ module.exports = function(config, redis, logger) {
           }
           else {
             res.send(401, 'Authorization required');
-            return next();
+            return next(false);
           }
         });
       }

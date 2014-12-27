@@ -25,8 +25,10 @@ module.exports = function(config, redis, logger) {
         var tags = {};
 
         if ((err && err.status == '404') || value == null)
-          var value = []
-        
+          value = [];
+
+        value = [];
+
         req.original_images = value;
 
         var data = value.concat(req.body);
@@ -69,7 +71,7 @@ module.exports = function(config, redis, logger) {
           final_images.push(images[key]);
         }
 
-        redis.set(redis.key('images', req.params.namespace, req.params.repo), final_images, function(err, status) {
+        redis.put(redis.key('images', req.params.namespace, req.params.repo), final_images, function(err) {
           if (err) {
             logger.error({err: err, type: 'redis', namespace: req.params.namespace, repo: req.params.repo});
             res.send(500, err);
@@ -78,27 +80,27 @@ module.exports = function(config, redis, logger) {
 
           async.each(final_images, function(image, cb) {
             var token_key = redis.key('tokens', req.token_auth.token, 'images', image.id);
-            redis.set(token_key, 1, function(err, resp) {
+            redis.put(token_key, 1, {ttl: config.tokens.expiration * 1000}, function(err, resp) {
               if (err) {
-                cb(err);
+                return cb(err);
               }
 
               // This expiration is merely for if an error occurs
               // we want the token to be invalidated automatically
-              redis.expire(token_key, config.tokens.expiration, function(err, resp2) {
-                if (err) {
-                  cb(err);
-                }
+              //redis.expire(token_key, config.tokens.expiration * 100, function(err, resp2) {
+              //  if (err) {
+              //    cb(err);
+              //  }
                 
-                cb();
-              });
+                cb(null);
+                //});
             });
           }, function(err) {
             if (err) {
               res.send(500, "something went wrong");
               return next();
             }
-            
+
             res.send(200);
             return next();
           });
