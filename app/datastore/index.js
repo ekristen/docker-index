@@ -1,7 +1,6 @@
 var level = require('level-hyper');
 var ttl   = require('level-ttl');
 var lkey  = require('level-key');
-var hooks = require('level-hooks');
 
 module.exports = datastore = function(opts) {
   var db = level(opts.path || "./db", { valueEncoding: 'json' });

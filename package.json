@@ -26,7 +26,6 @@
     "nodeunit": "*",
     "supertest": "*",
     "leveldown": "~1.0.0",
-    "level-hooks": "~4.5.0",
     "domain": "*",
     "once": "*"
   },
