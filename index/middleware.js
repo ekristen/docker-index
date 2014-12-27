@@ -111,7 +111,7 @@ module.exports = function(config, redis, logger) {
 
               var token = 'signature=' + token + ', repository="' + repo + '", access=' + access;
 
-              logger.debug({namespace: req.params.namespace, repo: req.params.repo, token: token, access: access});
+              logger.debug({namespace: req.params.namespace, repo: req.params.repo, token: req.token_auth.token, access: access}, 'new token');
 
               res.setHeader('WWW-Authenticate', 'Token ' + token);
               res.setHeader('X-Docker-Token', token)
