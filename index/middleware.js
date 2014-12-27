@@ -33,20 +33,20 @@ module.exports = function(config, redis, logger) {
           if (err && err.status != '404') {
             logger.error({err: err, user: user});
             res.send(500, err);
-            return next();
+            return next(false);
           }
 
           if ((err && err.status == '404') || user == null) {
             logger.debug({permission: req.permission, user: username, statusCode: 403, message: 'access denied: user not found'});
             res.send(403, 'access denied (1)')
-            return next();
+            return next(false);
           }
 
           // If the account is disabled, do not let it do anything at all
           if (user.disabled == true || user.disabled == "true") {
             logger.debug({message: "account is disabled", user: user.username});
             res.send(401, {message: "access denied (2)"})
-            return next();
+            return next(false);
           }
 
           // Check that passwords match
@@ -68,25 +68,25 @@ module.exports = function(config, redis, logger) {
             if (req.permission == "none") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: permission not set'});
               res.send(403, 'access denied');
-              return next();
+              return next(false);
             }
 
             if (req.method == 'GET' && req.permission != "read" && req.permission != "readwrite" && req.permission != "admin") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: GET requested'});
               res.send(403, "access denied");
-              return next();
+              return next(false);
             }
       
             if (req.method == "PUT" && req.permission != "write" && req.permission != "readwrite" && req.permission != "admin") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: PUT requested'});
               res.send(403, "access denied");
-              return next();
+              return next(false);
             }
       
             if (req.method == "DELETE" && req.permission != "delete" && req.permission != "admin") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: DELETE requested'});
               res.send(403, "access denied");
-              return next();
+              return next(false);
             }
 
             var access = "none";
@@ -123,7 +123,7 @@ module.exports = function(config, redis, logger) {
           else {
             logger.debug({statusCode: 401, message: 'access denied: valid authorization information is required'});
             res.send(401, 'Authorization required');
-            return next();
+            return next(false);
           }
         });
       }
@@ -143,7 +143,7 @@ module.exports = function(config, redis, logger) {
           if (err && err.status != '404') {
             logger.error({err: err, token: sig});
             res.send(500, err);
-            return next();
+            return next(false);
           }
 
           if (err && err.status == '404') {

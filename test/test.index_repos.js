@@ -64,14 +64,14 @@ exports.setUp = function(done) {
           'testing': 'admin',
           'base': 'admin'
         }
+      }, function(err) {
+        done();
       });
-
-      done()
   });
 };
 
 exports.tearDown = function(done) {
-  client.createKeyStream().on('data', function(data) { client.del(data); });
+  client.createKeyStream({ sync: true }).on('data', function(key) { client.del(key) });
   JSON_CLIENT.close();
   SERVER.close(done);
 }

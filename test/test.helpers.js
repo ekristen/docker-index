@@ -1,6 +1,8 @@
 var domain = require('domain');
 var once = require('once');
-var fakeredis = require('fakeredis');
+var datastore = require('../app/datastore/index.js')
+
+var client = datastore({path: './test/ixhelpersdb'});
 
 var config = {
   tokens: {
@@ -12,8 +14,8 @@ var logger = {};
 logger.error = function() {};
 logger.debug = function() {};
 
-var client  = fakeredis.createClient();
 var helpers = require('../index/helpers.js')(config, client, logger);
+
 
 exports.GenerateToken = function(test) {
   helpers.generateToken('test_repo', 'test_access', function(err, token) {

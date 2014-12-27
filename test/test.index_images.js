@@ -61,14 +61,14 @@ exports.setUp = function(done) {
           'testing': 'admin',
           'base': 'admin'
         }
+      }, { sync: true }, function(err) {
+        done();
       });
-
-      done()
   });
 };
 
 exports.tearDown = function(done) {
-  client.createKeyStream().on('data', function(data) { client.del(data); });
+  client.createKeyStream({ sync: true }).on('data', function(data) { client.del(data); });
   STR_CLIENT.close();
   SERVER.close(done);
 }
@@ -92,7 +92,7 @@ exports.ImagesTests = {
   
   GetImages: function(test) {
     var layers = {};
-    client.put(client.key('images', 'base', 'debian'), layers, function(err, success) {
+    client.put(client.key('images', 'base', 'debian'), layers, { sync: true }, function(err, success) {
       helper.generateToken('base/debian', 'write', function(err, token) {
 
         var options = {

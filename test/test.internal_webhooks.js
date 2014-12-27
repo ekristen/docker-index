@@ -1,4 +1,3 @@
-var fakeredis = require('fakeredis');
 var request = require('supertest');
 var restify = require('restify');
 var crypto = require('crypto');
@@ -10,6 +9,7 @@ var logger = {
 }
 
 var client = datastore({path: './test/iwebhooksdb'});
+client.createKeyStream({ sync: true }).on('data', function(key) { client.del(key) });
 
 var webhooks = require('../internal/webhooks')({}, client, logger);
 var middleware = require('../internal/middleware')({}, client, logger);

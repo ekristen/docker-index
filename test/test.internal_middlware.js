@@ -12,6 +12,7 @@ var logger = {
 }
 
 var client = datastore({path: './test/imiddledb'});
+client.createKeyStream({ sync: true }).on('data', function(key) { client.del(key) });
 
 var middleware = require('../internal/middleware')({}, client, logger);
 

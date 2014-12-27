@@ -20,13 +20,13 @@
     "level-hyper": "~0.18.0",
     "level-ttl": "~2.2.0",
     "level-key": "~1.0.0",
-    "bunyan-format": "~0.1.1",
-    "level-hooks": "~4.5.0"
+    "bunyan-format": "~0.1.1"
   },
   "devDependencies": {
     "nodeunit": "*",
     "supertest": "*",
-    "fakeredis": "*",
+    "leveldown": "~1.0.0",
+    "level-hooks": "~4.5.0",
     "domain": "*",
     "once": "*"
   },

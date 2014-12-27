@@ -2,13 +2,16 @@ var fakeredis = require('fakeredis');
 var request = require('supertest');
 var restify = require('restify');
 var crypto = require('crypto');
+var datastore = require('../app/datastore/index.js');
 
 var logger = {
   debug: function() { },
   error: function() { }
 }
 
-var client = fakeredis.createClient();
+var client = datastore({path: './test/idefaultsdb'});
+client.createKeyStream({ sync: true }).on('data', function(key) { client.del(key) });
+
 
 var defaults = require('../index/defaults')({test: true}, client, logger);
 

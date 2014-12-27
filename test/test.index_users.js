@@ -4,13 +4,17 @@ var restify = require('restify');
 var config = require('config');
 var datastore = require('../app/datastore/index.js')
 
-var client = datastore({path: './test/iusersdb'});
-client.createKeyStream().on('data', function(data) { client.del(data); });
+var client = datastore({path: './test/ixusersdb'});
+client.createKeyStream({ sync: true }).on('data', function(key) { client.del(key) });
 
 var users = require('../index/users')(config, client);
 
 var SERVER;
 var STR_CLIENT;
+
+process.on('uncaughtException', function(err) {
+  console.error(err.stack);
+});
 
 exports.setUp = function(done) {
   SERVER = restify.createServer({
@@ -36,6 +40,11 @@ exports.setUp = function(done) {
       done()
   });
 };
+
+exports.tearDown = function(done) {
+  STR_CLIENT.close();
+  SERVER.close(done);
+}
 
 exports.IndexUsers = {
   CreateUser: function(test) {
@@ -130,11 +139,6 @@ exports.IndexUsers = {
       test.equal(data, '{"message":"bad username and/or password (2)"}');
       test.done();
     });
-  }
-
+  },
+  
 };
-
-exports.tearDown = function(done) {
-  STR_CLIENT.close();
-  SERVER.close(done);
-}

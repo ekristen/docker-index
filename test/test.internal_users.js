@@ -68,7 +68,7 @@ exports.setUp = function(done) {
 };
 
 exports.tearDown = function(done) {
-  client.createKeyStream().on('data', function(key) { client.del(key); }).on('end', function() {
+  client.createKeyStream({ sync: true }).on('data', function(key) { client.del(key); }).on('end', function() {
     STR_CLIENT.close();
     SERVER.close(done);
   })
