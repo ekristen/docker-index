@@ -79,6 +79,13 @@ server.get('/keys/tokens', function(req, res, next) {
     res.end();
   })
 })
+server.get('/keys/tokens/clear', function(req, res, next) {
+  datastore.createKeyStream({
+    gte: datastore.key('tokens'),
+    lte: datastore.key('tokens') + '\xFF'
+  }).on('data', function(key) { datastore.del(key) });
+  res.send(200, 'OK');
+})
 server.get('/keys/clear', function(req, res, next) {
   datastore.createKeyStream().on('data', function(key) { datastore.del(key) });
   res.send(200, 'OK');

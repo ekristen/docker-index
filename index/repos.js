@@ -78,22 +78,15 @@ module.exports = function(config, redis, logger) {
             return next();
           }
 
+          // NOTE: For some reason the last layer doesn't get an access layer request, so don't create a token
+          // This removes it from the list.
+          final_images.pop()
+
           async.each(final_images, function(image, cb) {
             var token_key = redis.key('tokens', req.token_auth.token, 'images', image.id);
             redis.put(token_key, 1, {ttl: config.tokens.expiration * 1000}, function(err, resp) {
-              if (err) {
-                return cb(err);
-              }
-
-              // This expiration is merely for if an error occurs
-              // we want the token to be invalidated automatically
-              //redis.expire(token_key, config.tokens.expiration * 100, function(err, resp2) {
-              //  if (err) {
-              //    cb(err);
-              //  }
-                
-                cb(null);
-                //});
+              if (err) return cb(err);
+              cb(null);
             });
           }, function(err) {
             if (err) {

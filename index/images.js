@@ -34,11 +34,12 @@ module.exports = function(config, redis, logger) {
           return next();
         })
         .on('data', function(key) {
+          console.log('KEKKKKKEKKEKEKKEKE', key)
           keys = key;
           ++key_count;
         })
         .on('end', function() {
-          if (key_count == 1) {
+          if (key_count == 1000) {
             redis.del(keys, function(err, success) {
               if (err) {
                 logger.error({err: err, function: "repoImagesGet"});

@@ -18,17 +18,7 @@ module.exports = function(config, redis, logger) {
           return cb(err);
         }
 
-        // Set an expiration so that in the event of a server error
-        // the token is deleted automatically at some point
-        /*
-        redis.expire(redis.key('tokens', sha1), config.tokens.expiration * 1000, function(err, status) {
-          if (err) {
-            logger.error({err: err, function: 'generateToken'});
-            return cb(err);
-          }
-        */
-          cb(null, sha1);
-          //});
+        cb(null, sha1);
       });
     },
 
