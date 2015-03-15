@@ -5,7 +5,7 @@ module.exports = function(config, redis, logger) {
 
   return {
     
-    repoGet: function (req, res, next) {
+    repoPut: function (req, res, next) {
       if (!req.params.namespace)
         req.params.namespace = 'library';
         
@@ -14,8 +14,8 @@ module.exports = function(config, redis, logger) {
         return next();
       }
 
-      redis.get('images:' + req.params.namespace + '_' + req.params.repo, function(err, value) {
-        if (err) {
+      redis.get(redis.key('images', req.params.namespace, req.params.repo), function(err, value) {
+        if (err && err.status != '404') {
           logger.error({err: err, namespace: req.params.namespace, repo: req.params.repo});
           res.send(500, err);
           return next();
@@ -24,11 +24,11 @@ module.exports = function(config, redis, logger) {
         var images = {};
         var tags = {};
 
-        if (value == null)
-          var value = []
-        else
-          var value = JSON.parse(value);
-        
+        if ((err && err.status == '404') || value == null)
+          value = [];
+
+        value = [];
+
         req.original_images = value;
 
         var data = value.concat(req.body);
@@ -70,38 +70,30 @@ module.exports = function(config, redis, logger) {
   
           final_images.push(images[key]);
         }
-  
-        var image_key = util.format("images:%s_%s", req.params.namespace, req.params.repo);
-        redis.set(image_key, JSON.stringify(final_images), function(err, status) {
+
+        redis.put(redis.key('images', req.params.namespace, req.params.repo), final_images, function(err) {
           if (err) {
             logger.error({err: err, type: 'redis', namespace: req.params.namespace, repo: req.params.repo});
             res.send(500, err);
             return next();
           }
 
-          async.each(final_images, function(image, cb) {
-            var token_key = util.format("tokens:%s:images:%s", req.token_auth.token, image.id);
-            redis.set(token_key, 1, function(err, resp) {
-              if (err) {
-                cb(err);
-              }
+          // NOTE: For some reason the last layer doesn't get an access layer request, so don't create a token
+          // This removes it from the list.
+          final_images.pop()
 
-              // This expiration is merely for if an error occurs
-              // we want the token to be invalidated automatically
-              redis.expire(token_key, config.tokens.expiration, function(err, resp2) {
-                if (err) {
-                  cb(err);
-                }
-                
-                cb();
-              });
+          async.each(final_images, function(image, cb) {
+            var token_key = redis.key('tokens', req.token_auth.token, 'images', image.id);
+            redis.put(token_key, 1, {ttl: config.tokens.expiration * 1000}, function(err, resp) {
+              if (err) return cb(err);
+              cb(null);
             });
           }, function(err) {
             if (err) {
               res.send(500, "something went wrong");
               return next();
             }
-            
+
             res.send(200);
             return next();
           });

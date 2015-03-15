@@ -22,37 +22,35 @@ module.exports = function(config, redis, logger) {
         var buff  = new Buffer(auth[1], 'base64');
         var plain = buff.toString();
         var creds = plain.split(':');
-        var user  = creds[0];
-        var pass  = creds[1];
+        var username  = creds[0];
+        var password  = creds[1];
 
         var shasum = crypto.createHash('sha1');
-        shasum.update(pass);
+        shasum.update(password);
         var sha1pwd = shasum.digest('hex');
 
-        redis.get("users:" + user, function(err, value) {
-          if (err) {
+        redis.get(redis.key('users', username), function(err, user) {
+          if (err && err.status != '404') {
             logger.error({err: err, user: user});
             res.send(500, err);
-            return next();
+            return next(false);
           }
 
-          if (value == null) {
-            logger.debug({permission: req.permission, user: user, statusCode: 403, message: 'access denied: user not found'});
+          if ((err && err.status == '404') || user == null) {
+            logger.debug({permission: req.permission, user: username, statusCode: 403, message: 'access denied: user not found'});
             res.send(403, 'access denied (1)')
-            return next();
+            return next(false);
           }
-        
-          value = JSON.parse(value);
 
           // If the account is disabled, do not let it do anything at all
-          if (value.disabled == true || value.disabled == "true") {
-            logger.debug({message: "account is disabled", user: value.username});
+          if (user.disabled == true || user.disabled == "true") {
+            logger.debug({message: "account is disabled", user: user.username});
             res.send(401, {message: "access denied (2)"})
-            return next();
+            return next(false);
           }
 
           // Check that passwords match
-          if (value.password == sha1pwd) {
+          if (user.password == sha1pwd) {
             // TODO: Better handling for non repo images urls
             if (req.url == '/v1/users/') {
               return next();
@@ -60,35 +58,35 @@ module.exports = function(config, redis, logger) {
 
             var repo = req.params.namespace + '/' + req.params.repo;
 
-            req.username = user;
+            req.username = user.username;
             req.namespace = req.params.namespace;
             req.repo = repo;
 
             // Check for repo permissions
-            req.permission = value.permissions[req.namespace] || value.permissions[req.repo] || 'none';
+            req.permission = user.permissions[req.namespace] || user.permissions[req.repo] || 'none';
 
             if (req.permission == "none") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: permission not set'});
               res.send(403, 'access denied');
-              return next();
+              return next(false);
             }
 
             if (req.method == 'GET' && req.permission != "read" && req.permission != "readwrite" && req.permission != "admin") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: GET requested'});
               res.send(403, "access denied");
-              return next();
+              return next(false);
             }
       
             if (req.method == "PUT" && req.permission != "write" && req.permission != "readwrite" && req.permission != "admin") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: PUT requested'});
               res.send(403, "access denied");
-              return next();
+              return next(false);
             }
       
             if (req.method == "DELETE" && req.permission != "delete" && req.permission != "admin") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: DELETE requested'});
               res.send(403, "access denied");
-              return next();
+              return next(false);
             }
 
             var access = "none";
@@ -113,7 +111,7 @@ module.exports = function(config, redis, logger) {
 
               var token = 'signature=' + token + ', repository="' + repo + '", access=' + access;
 
-              logger.debug({namespace: req.params.namespace, repo: req.params.repo, token: token, access: access});
+              logger.debug({namespace: req.params.namespace, repo: req.params.repo, token: req.token_auth.token, access: access}, 'new token');
 
               res.setHeader('WWW-Authenticate', 'Token ' + token);
               res.setHeader('X-Docker-Token', token)
@@ -125,7 +123,7 @@ module.exports = function(config, redis, logger) {
           else {
             logger.debug({statusCode: 401, message: 'access denied: valid authorization information is required'});
             res.send(401, 'Authorization required');
-            return next();
+            return next(false);
           }
         });
       }
@@ -139,25 +137,37 @@ module.exports = function(config, redis, logger) {
 
         req.token_auth = { token: sig, repo: repo, access: access };
 
-        redis.get("tokens:" + sig, function(err, value) {
-          if (err) {
+        logger.debug(req.token_auth, 'token auth');
+
+        redis.get(redis.key('tokens', sig), function(err, token) {
+          if (err && err.status != '404') {
             logger.error({err: err, token: sig});
             res.send(500, err);
-            return next();
+            return next(false);
           }
 
-          value = JSON.parse(value);
-      
-          if (value.repo == repo && value.access == access) {
+          if (err && err.status == '404') {
+            token = {};
+          }
+
+          if (token.repo == repo && token.access == access) {
             return next();
           }
           else {
             res.send(401, 'Authorization required');
-            return next();
+            return next(false);
           }
         });
       }
     },
+
+    expireToken: function(req, res) {
+      redis.expire(redis.key('tokens', req.token_auth.token), 60 * 1000, function(err) {
+        if (err) {
+          logger.error(err, 'unable to expire token');
+        }
+      });
+    }, // end expireToken
 
   }; // end return
 }; // end module.exports

@@ -12,8 +12,8 @@ module.exports = function(config, redis, logger) {
         return next();
       }
 
-      redis.get("users:" + req.body.username, function(err, value) {
-        if (err) {
+      redis.get(redis.key('users', req.body.username), function(err, value) {
+        if (err && err.status != "404") {
           res.send(500, err);
           return next();
         }
@@ -40,21 +40,14 @@ module.exports = function(config, redis, logger) {
             return next();
           }
 
-          redis.set("users:" + userObj.username, JSON.stringify(userObj), function(err, status) {
+          redis.set(redis.key('users', userObj.username), userObj, function(err, status) {
             if (err) {
               res.send(500, err);
               return next();
             }
 
-            redis.sadd('users', userObj.username, function(err) {
-              if (err) {
-                res.send(500, err);
-                return next();
-              }
-
-              res.send(201, {message: 'account created successfully'});
-              return next();
-            });
+            res.send(201, {message: 'account created successfully'});
+            return next();
           });
         }
         else {
@@ -65,13 +58,13 @@ module.exports = function(config, redis, logger) {
     },
     
     updateUser: function (req, res, next) {
-      redis.get("users:" + req.params.username, function(err, value) {
+      redis.get(redis.key('users', req.params.username), function(err, value) {
         if (err) {
           res.send(500, err);
           return next();
         }
 
-        var user = JSON.parse(value) || {};
+        var user = value || {};
 
         var shasum = crypto.createHash("sha1");
         shasum.update(req.body.password);
@@ -80,12 +73,12 @@ module.exports = function(config, redis, logger) {
         user.password = sha1;
         user.email = req.body.email;
 
-        redis.set("users:" + req.params.username, JSON.stringify(user), function(err, status) {
+        redis.set(redis.key('users', req.params.username), user, function(err, status) {
           if (err) {
             res.send(500, err);
             return next();
           }
-    
+
           res.send(204);
           return next();
         });
@@ -105,13 +98,13 @@ module.exports = function(config, redis, logger) {
         var username  = creds[0];
         var password  = creds[1];
 
-        redis.get("users:" + username, function(err, value) {
-          if (err) {
+        redis.get(redis.key('users', username), function(err, value) {
+          if (err && err.status != "404") {
             res.send(500, err);
             return next();
           }
-          
-          var user = JSON.parse(value) || {};
+
+          var user = value || {};
 
           var shasum = crypto.createHash("sha1");
           shasum.update(password);

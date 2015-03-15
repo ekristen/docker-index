@@ -19,7 +19,8 @@ module.exports = function(config, redis, logger) {
         ],
         version: '1.0.0',
         fn: index_images.repoImagesGet,
-        middleware: [ index_middleware.requireAuth ]
+        middleware: [ index_middleware.requireAuth ],
+        afterware: [ index_middleware.expireToken ]
       },
       
       {

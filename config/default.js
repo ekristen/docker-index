@@ -6,6 +6,9 @@ module.exports = {
   app: {
     port: 5100 // Port that the application listens on
   },
+  datastore: {
+    path: './db'
+  },
   redis: {
     port: 6379,
     host: 'localhost'

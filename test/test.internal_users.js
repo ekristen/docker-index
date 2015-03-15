@@ -1,13 +1,14 @@
 var fakeredis = require('fakeredis');
 var request = require('supertest');
 var restify = require('restify');
+var datastore = require('../app/datastore/index.js');
 
 var logger = {
   debug: function() { },
   error: function() { }
 }
 
-var client = fakeredis.createClient();
+var client = datastore({path: './test/iuserdb'});
 
 var users = require('../internal/users')(client, logger);
 
@@ -15,28 +16,6 @@ var SERVER;
 var STR_CLIENT;
 
 exports.setUp = function(done) {
-  client.set('users:testing', JSON.stringify({
-    username: 'testing',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing@testing.com',
-    disabled: false,
-    admin: true,
-    permissions: {
-      'testing': 'admin'
-    }
-  }));
-  client.sadd('users', 'testing');
-  
-  client.set('users:testing2', JSON.stringify({
-    username: 'testing2',
-    password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-    email: 'testing2@testing.com',
-    disabled: true,
-    permissions: {
-      'testing': 'admin'
-    }
-  }));
-  client.sadd('users', 'testing2');
   
   SERVER = restify.createServer({
     name: 'myapp',
@@ -64,13 +43,35 @@ exports.setUp = function(done) {
           retry: false
       });
 
+      client.put(client.key('users', 'testing'), {
+        username: 'testing',
+        password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
+        email: 'testing@testing.com',
+        disabled: false,
+        admin: true,
+        permissions: {
+          'testing': 'admin'
+        }
+      });
+      client.put(client.key('users', 'testing2'), {
+        username: 'testing2',
+        password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
+        email: 'testing2@testing.com',
+        disabled: true,
+        permissions: {
+          'testing': 'admin'
+        }
+      });
+
       done()
   });
 };
 
 exports.tearDown = function(done) {
-  STR_CLIENT.close();
-  SERVER.close(done);
+  client.createKeyStream({ sync: true }).on('data', function(key) { client.del(key); }).on('end', function() {
+    STR_CLIENT.close();
+    SERVER.close(done);
+  })
 };
 
 exports.ListUsers = function(test) {
@@ -231,13 +232,16 @@ exports.CreateUser = function(test) {
 exports.CreateExistingUser = function(test) {
   var body = 'username=testing3&password=testing3&email=testing3@testing.com';
   STR_CLIENT.post('/users', body, function(err, req, res, data) {
-    test.ok(err);
-    test.equal(res.statusCode, 409)
-    test.ok(res);
-    test.ok(req);
-    test.equal(data, '{"messsage":"user already exists","error":false}');
-    test.done();
-  });
+    var body = 'username=testing3&password=testing3&email=testing3@testing.com';
+    STR_CLIENT.post('/users', body, function(err, req, res, data) {
+      test.ok(err);
+      test.equal(res.statusCode, 409)
+      test.ok(res);
+      test.ok(req);
+      test.equal(data, '{"messsage":"user already exists","error":false}');
+      test.done();
+    });
+  });  
 };
 
 exports.CreateUserMissingUsernameField = function(test) {

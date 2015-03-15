@@ -16,12 +16,16 @@
     "config": "~0.4.35",
     "redis": "~0.10.3",
     "underscore": "~1.6.0",
-    "request": "~2.49.0"
+    "request": "~2.49.0",
+    "level-hyper": "~0.18.0",
+    "level-ttl": "~2.2.0",
+    "level-key": "~1.0.1",
+    "bunyan-format": "~0.1.1"
   },
   "devDependencies": {
     "nodeunit": "*",
     "supertest": "*",
-    "fakeredis": "*",
+    "leveldown": "~1.0.0",
     "domain": "*",
     "once": "*"
   },

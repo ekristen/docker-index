@@ -1,12 +1,14 @@
 var config = require('config');
 var restify = require('restify');
 var bunyan = require('bunyan');
+var bunyan_format = require('bunyan-format');
 var restify_endpoints = require('restify-endpoints');
+var datastore = require('./app/datastore/index.js')({path: './db'});
 
 // Setup logger
 var logger = bunyan.createLogger({
   name: 'docker-index',
-  stream: process.stdout,
+  stream: bunyan_format({outputMode: 'short'}),
   level: config.loglevel,
   src: true,
   serializers: {
@@ -14,17 +16,10 @@ var logger = bunyan.createLogger({
   }
 });
 
-// Setup Redis Connection
-var redis = require('redis').createClient(config.redis.port, config.redis.host);
-
-redis.on('error', function(err) {
-  logger.error({domain: 'redis', err: err, stack: err.stack});
-});
-
 // Setup Restify Endpoints
 var endpoints = new restify_endpoints.EndpointManager({
   endpointpath: __dirname + '/endpoints',
-  endpoint_args: [config, redis, logger]
+  endpoint_args: [config, datastore, logger]
 });
 
 // Create our Restify server
@@ -35,7 +30,8 @@ var server = restify.createServer({
 
 // Catch unhandled exceptions and log it!
 server.on('uncaughtException', function (req, res, route, err) {
-  logger.error({err: err}, 'uncaughtException');
+  console.log(err.stack);
+  process.exit(1)
 });
 
 // Basic Restify Middleware
@@ -62,5 +58,6 @@ server.listen(config.app.port, function () {
   console.log('%s listening at %s', server.name, server.url);
 });
 
-require('./lib/firsttime.js')(config, redis);
-require('./lib/upgrades.js')(config, redis);
+require('./lib/firsttime.js')(config, datastore);
+//require('./lib/upgrades.js')(config, redis);
+

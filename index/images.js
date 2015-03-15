@@ -6,43 +6,26 @@ module.exports = function(config, redis, logger) {
 
     repoImagesGet: function (req, res, next) { 
       if (!req.params.namespace)
-        req.params.namespace = 'library';  
+        req.params.namespace = 'library';
 
-      redis.get("images:" + req.params.namespace + '_' + req.params.repo, function(err, value) {
-        if (err) {
+      redis.get(redis.key('images', req.params.namespace, req.params.repo), function(err, images) {
+        if (err && err.status != '404') {
           logger.error({err: err, function: "repoImagesGet"});
           res.send(500, err);
           return next();
         }
+        
+        if (err && err.status == '404') {
+          images = [];
+        }
 
-        logger.debug({namespace: req.params.namespace, repo: req.params.repo});
+        logger.debug({namespace: req.params.namespace, repo: req.params.repo}, 'Get Images');
 
-        redis.keys(util.format("tokens:%s:images:*", req.token_auth.token), function(err, keys) {
-          if (keys.length == 1) {
-            redis.del(keys, function(err, success) {
-              if (err) {
-                logger.error({err: err, function: "repoImagesGet"});
-                res.send(500, err);
-                return next();
-              }
-              
-              redis.expire(util.format("tokens:%s", req.token_auth.token), 60, function(err, success2) {
-                if (err) {
-                  logger.error({err: err, function: "repoImagesGet"});
-                  res.send(500, err);
-                  return next();
-                }
+        var key_count = 0;
+        var keys = null;
 
-                res.send(200, JSON.parse(value) || {});
-                return next();
-              })
-            })
-          }
-          else {
-            res.send(200, JSON.parse(value) || {});
-            return next();
-          }
-        })
+        res.send(200, images)
+        return next();
       });
     },
 
@@ -50,49 +33,49 @@ module.exports = function(config, redis, logger) {
       if (!req.params.namespace)
         req.params.namespace = 'library';
 
-      var name = req.params.namespace + '_' + req.params.repo;
+      var repo_key = redis.key('images', req.params.namespace, req.params.repo);
 
-      redis.sismember('images', name, function(err, status) {
+      redis.exists(repo_key, function(err, exists) {
         if (err) {
-          logger.error({err: err, function: "repoImagesPut:sismember"});
+          logger.error({err: err});
           res.send(500, err);
           return next();
         }
-
-        if (status == 0) {
-          redis.sadd('images', name, function(err) {
+        
+        if (!exists) {
+          redis.set(repo_key, [], function(err, success) {
             if (err) {
-              logger.error({err: err, function: "repoImagesPut:sadd"});
+              logger.error({err: err});
               res.send(500, err);
               return next();
             }
-
+            
             res.send(204);
             return next();
-          });
+          })
         }
         else {
           res.send(204);
           return next();
         }
-      })
+      });
     },
     
     repoImagesLayerAccess: function (req, res, next) {
-      var key = util.format("tokens:%s:images:%s", req.token_auth.token, req.params.image);
-      redis.get(key, function(err, result) {
+      var key = redis.key('tokens', req.token_auth.token, 'images', req.params.image);
+      redis.exists(key, function(err, exists) {
         if (err) {
           res.send(500, {error: err, access: false})
           return next();
         }
 
-        redis.del(key);
-
-        if (result == "1") {
-          res.send(200, {access: true})
+        if (exists == true) {
+          redis.del(key);
+          res.send(200, {access: true});
           return next();
         }
         else {
+          redis.del(key);
           res.send(200, {access: false})
           return next();
         }

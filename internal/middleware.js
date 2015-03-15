@@ -21,37 +21,35 @@ module.exports = function(config, redis, logger) {
         var buff  = new Buffer(auth[1], 'base64');
         var plain = buff.toString();
         var creds = plain.split(':');
-        var user  = creds[0];
-        var pass  = creds[1];
+        var username  = creds[0];
+        var password  = creds[1];
 
         var shasum = crypto.createHash('sha1');
-        shasum.update(pass);
+        shasum.update(password);
         var sha1pwd = shasum.digest('hex');
 
-        redis.get("users:" + user, function(err, value) {
-          if (err) {
+        redis.get(redis.key('users', username), function(err, user) {
+          if (err && err.status != '404') {
             logger.error({err: err, user: user});
             res.send(500, err);
             return next(false);
           }
 
-          if (value == null) {
+          if ((err && err.status == '404') || user == null) {
             res.send(403, {message: 'access denied'})
             return next(false);
           }
-        
-          value = JSON.parse(value);
 
           // If the account is disabled, do not let it do anything at all
-          if (value.disabled == true || value.disabled == "true") {
-            logger.debug({message: "account is disabled", user: value.username});
+          if (user.disabled == true || user.disabled == "true") {
+            logger.debug({message: "account is disabled", user: user.username});
             res.send(403, {message: 'access denied'})
             return next(false);
           }
 
-          if (value.password == sha1pwd) {
-            req.username = user;
-            req.admin = value.admin || false;
+          if (user.password == sha1pwd) {
+            req.username = user.username;
+            req.admin = user.admin || false;
 
             return next();
           }
@@ -59,24 +57,6 @@ module.exports = function(config, redis, logger) {
             res.send(403, {message: 'access denied'});
             return next(false);
           }
-        });
-      }
-      else if (auth[0] == 'Token' && req.url == '/users') {
-        req.authmethod = 'token';
-
-        redis.get('_initial_auth_token', function(err, value) {
-          if (err) {
-            logger.error({err: err, user: user});
-            res.send(500, err);
-            return next(false);
-          }
-
-          if (value == auth[1]) {
-            return next();
-          }
-          
-          res.send(403, {message: 'access denied'});
-          return next(false);
         });
       }
       else {
@@ -105,14 +85,10 @@ module.exports = function(config, redis, logger) {
         return next();
       }
 
-      var user_key = util.format('users:%s', req.username);
-
-      redis.get(user_key, function(err, user) {
+      redis.get(redis.key('users', req.username), function(err, user) {
         next.ifError(err);
         
-        var userobj = JSON.parse(user);
-
-        var permissions = userobj.permissions;
+        var permissions = user.permissions;
         
         var access = permissions[req.params.namespace] || permissions[req.params.namespace + '_' + req.params.repo] || false;
         

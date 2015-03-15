@@ -1,3 +1,5 @@
 config/local.js
 node_modules
 .git
+test/*
+db
