@@ -1,5 +1,11 @@
 [![Build Status](https://travis-ci.org/ekristen/docker-index.png)](https://travis-ci.org/ekristen/docker-index)
 
+# Upcoming Changes
+
+Version 2 is in the works. It is going to abstract the data storage to support multiple versions. It may introduce breaking changes, but I am going to do my best to prevent it, I also plan to have a migration script from redis to leveldb only. 
+
+The `develop` branch will contain all the work going into `v2` going forward, will merge into `master` once it goes into beta.
+
 # Overview
 
 The purpose of this project is to provide the docker masses with an authenticated docker index for their own docker registry that has real repository access controls instead of just using htaccess on a reverse proxy.
