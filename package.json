@@ -8,6 +8,7 @@
     "start": "node app.js",
     "test": "nodeunit ./test"
   },
+  "main": "app/server.js",
   "dependencies": {
     "async": "~0.6.2",
     "bunyan": "~0.22.1",
