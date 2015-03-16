@@ -8,9 +8,6 @@ module.exports = datastore = function(opts) {
   db = lkey(db);
 
   ttl(db);
-  db.methods = db.methods || {};
-  db.methods.ttl = { type: 'async' };
-  db.ttl = db.ttl;
 
   var close = db.close;
   db.close = function() {
