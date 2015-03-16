@@ -9,25 +9,25 @@
     "test": "nodeunit ./test"
   },
   "dependencies": {
+    "async": "~0.6.2",
+    "bunyan": "~0.22.1",
+    "bunyan-format": "~0.1.1",
+    "config": "~0.4.35",
+    "level-hyper": "~0.18.0",
+    "level-key": "~1.0.1",
+    "level-ttl": "~2.2.0",
+    "redis": "~0.10.3",
+    "request": "~2.49.0",
     "restify": "git+https://github.com/ekristen/node-restify.git",
     "restify-endpoints": "~1.1.1",
-    "bunyan": "~0.22.1",
-    "async": "~0.6.2",
-    "config": "~0.4.35",
-    "redis": "~0.10.3",
-    "underscore": "~1.6.0",
-    "request": "~2.49.0",
-    "level-hyper": "~0.18.0",
-    "level-ttl": "~2.2.0",
-    "level-key": "~1.0.1",
-    "bunyan-format": "~0.1.1"
+    "underscore": "~1.6.0"
   },
   "devDependencies": {
     "nodeunit": "*",
     "supertest": "*",
-    "leveldown": "~1.0.0",
     "domain": "*",
-    "once": "*"
+    "once": "*",
+    "rimraf": "*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
