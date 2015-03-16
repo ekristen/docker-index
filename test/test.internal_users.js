@@ -1,6 +1,6 @@
-var fakeredis = require('fakeredis');
 var request = require('supertest');
 var restify = require('restify');
+var rimraf = require('rimraf');
 var datastore = require('../app/datastore/index.js');
 
 var logger = {
@@ -68,10 +68,14 @@ exports.setUp = function(done) {
 };
 
 exports.tearDown = function(done) {
-  client.createKeyStream({ sync: true }).on('data', function(key) { client.del(key); }).on('end', function() {
-    STR_CLIENT.close();
-    SERVER.close(done);
-  })
+  client.createKeyStream()
+    .on('data', function(key) { client.del(key); })
+    .on('end', function() {
+      STR_CLIENT.close();
+      SERVER.close(function() {
+        rimraf('./test/iuserdb', done)
+      });
+    })
 };
 
 exports.ListUsers = function(test) {

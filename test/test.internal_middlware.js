@@ -1,4 +1,3 @@
-var fakeredis = require('fakeredis');
 var request = require('supertest');
 var restify = require('restify');
 var crypto = require('crypto');

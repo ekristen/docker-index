@@ -1,6 +1,7 @@
 var domain = require('domain');
 var once = require('once');
 var restify = require('restify');
+var rimraf = require('rimraf');
 var config = require('config');
 var datastore = require('../app/datastore/index.js')
 
