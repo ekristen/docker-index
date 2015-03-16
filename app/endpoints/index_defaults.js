@@ -1,6 +1,6 @@
 
 module.exports = function(config, redis, logger) {
-  var index_defaults = require('../index/defaults.js')(config, redis, logger);
+  var index_defaults = require('index/defaults')(config, redis, logger);
 
   var endpoints = {
     name: 'Docker Index -- Default Routes',
