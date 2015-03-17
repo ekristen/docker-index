@@ -21,5 +21,5 @@ EXPOSE 5100
 
 ENTRYPOINT ["node"]
 
-CMD ["app.js"]
+CMD ["bin/server"]
 

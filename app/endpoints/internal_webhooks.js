@@ -1,7 +1,7 @@
 
 module.exports = function(config, redis, logger) {
-  var internal_middleware = require('../internal/middleware.js')(config, redis, logger);
-  var internal_webhooks = require('../internal/webhooks.js')(config, redis, logger);
+  var internal_middleware = require('internal/middleware')(config, redis, logger);
+  var internal_webhooks = require('internal/webhooks')(config, redis, logger);
 
   var endpoints = {
     name: 'InternalWebhooks',

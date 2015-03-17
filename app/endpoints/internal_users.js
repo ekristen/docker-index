@@ -1,7 +1,7 @@
 
 module.exports = function(config, redis, logger) {
-  var internal_middleware = require('../internal/middleware.js')(config, redis, logger);
-  var internal_users = require('../internal/users.js')(redis, logger);
+  var internal_middleware = require('internal/middleware')(config, redis, logger);
+  var internal_users = require('internal/users')(redis, logger);
 
   var endpoints = {
     name: 'InternalUsers',

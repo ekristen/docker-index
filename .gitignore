@@ -1,6 +1,6 @@
-runtime.json
-node_modules
-local.js
+/node_modules
+/config/local.js
+/config/runtime.json
 db
-testdb
-test/*db
+tests-*db
+npm-debug.log

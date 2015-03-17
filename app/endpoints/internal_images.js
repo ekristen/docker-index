@@ -1,7 +1,7 @@
 
 module.exports = function(config, redis, logger) {
-  var internal_middleware = require('../internal/middleware.js')(config, redis, logger);
-  var internal_images = require('../internal/images.js')(redis, logger);
+  var internal_middleware = require('internal/middleware')(config, redis, logger);
+  var internal_images = require('internal/images')(redis, logger);
 
   var endpoints = {
     name: 'Internal API - Images in Index',
