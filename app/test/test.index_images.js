@@ -1,25 +1,26 @@
-var domain = require('domain');
-var once = require('once');
-var restify = require('restify');
-var util = require('util');
-var datastore = require('../app/datastore/index.js')
+var test = require('tape')
+var rimraf = require('rimraf')
+var restify = require('restify')
+var util = require('util')
 
-var client = datastore({path: './test/iximagesdb'});
+var datastore = require('datastore')
+
+var client = datastore({path: './tests-iximagesdb'})
 
 var config = {
   tokens: {
     expiration: 100
   }
-};
+}
 
 var logger = {
   debug: function(msg) {  },
   error: function(msg) {  }
 }
 
-var helper = require('../index/helpers')(config, client, logger);
-var images = require('../index/images')(config, client, logger);
-var middle = require('../index/middleware')(config, client, logger);
+var helper = require('index/helpers')(config, client, logger);
+var images = require('index/images')(config, client, logger);
+var middle = require('index/middleware')(config, client, logger);
 
 var SERVER;
 var STR_CLIENT;
@@ -28,7 +29,7 @@ process.on('uncaughtException', function(err) {
   console.error(err.stack);
 });
 
-exports.setUp = function(done) {
+test('server setup', function(t) {
   SERVER = restify.createServer({
     name: 'myapp',
     version: '1.0.0'
@@ -46,10 +47,10 @@ exports.setUp = function(done) {
   SERVER.put('/v1/repositories/:namespace/:repo/images', middle.requireAuth, images.repoImagesPut);
 
   SERVER.listen(9999, '127.0.0.1', function() {
-      STR_CLIENT = restify.createStringClient({
-          url: 'http://127.0.0.1:9999',
-          retry: false
-      });
+    STR_CLIENT = restify.createStringClient({
+        url: 'http://127.0.0.1:9999',
+        retry: false
+    });
 
       client.put(client.key('users', 'testing'), {
         username: 'testing',
@@ -62,54 +63,57 @@ exports.setUp = function(done) {
           'base': 'admin'
         }
       }, { sync: true }, function(err) {
-        done();
+        t.end()
       });
   });
-};
+})
 
-exports.tearDown = function(done) {
-  client.createKeyStream({ sync: true }).on('data', function(data) { client.del(data); });
-  STR_CLIENT.close();
-  SERVER.close(done);
-}
+test('put images', function(t) {
+  var options = {
+    path: '/v1/repositories/base/debian/images',
+    headers: {
+      authorization: util.format('Basic %s', new Buffer("testing:testing").toString('base64'))
+    }
+  };
 
-exports.ImagesTests = {
-  PutImages: function(test) {
-    var options = {
-      path: '/v1/repositories/base/debian/images',
-      headers: {
-        authorization: util.format('Basic %s', new Buffer("testing:testing").toString('base64'))
-      }
-    };
+  STR_CLIENT.put(options, function(err, req, res, data) {
+    t.ok(!err, 'there should be no error')
+    t.ok(req, 'there should be a req object')
+    t.ok(res, 'there should be a res object')
+    t.ok(!data, 'there should be no data')
+    t.end()
+  });
+})
 
-    STR_CLIENT.put(options, function(err, req, res, data) {
-      test.ifError(err);
-      test.ok(req);
-      test.ok(res);
-      test.done();
-    });
-  },
-  
-  GetImages: function(test) {
-    var layers = {};
-    client.put(client.key('images', 'base', 'debian'), layers, { sync: true }, function(err, success) {
-      helper.generateToken('base/debian', 'write', function(err, token) {
+test('get images', function(t) {
+  var layers = {};
+  client.put(client.key('images', 'base', 'debian'), layers, { sync: true }, function(err, success) {
+    helper.generateToken('base/debian', 'write', function(err, token) {
 
-        var options = {
-          path: '/v1/repositories/base/debian/images',
-          headers: {
-            authorization: util.format('Token signature=%s, repository="%s", access=%s', token, 'base/debian', 'write')
-          }
-        };
+      var options = {
+        path: '/v1/repositories/base/debian/images',
+        headers: {
+          authorization: util.format('Token signature=%s, repository="%s", access=%s', token, 'base/debian', 'write')
+        }
+      };
 
-        STR_CLIENT.get(options, function(err, req, res, data) {
-          test.ifError(err);
-          test.ok(req);
-          test.ok(res);
-          test.done();
-        });
-
+      STR_CLIENT.get(options, function(err, req, res, data) {
+        t.ok(!err, 'there should be no error')
+        t.ok(req, 'there should be a req object')
+        t.ok(res, 'there should be a res object')
+        t.ok(data, 'there should be data, but empty')
+        t.end();
       });
+
     });
-  }
-}
+  });
+})
+
+test('tear down', function(t) {
+  STR_CLIENT.close()
+  SERVER.close(function() {
+    rimraf('./tests-iximagesdb', function() {
+      t.end()
+    })
+  })
+})

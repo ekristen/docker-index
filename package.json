@@ -28,7 +28,8 @@
     "supertest": "*",
     "domain": "*",
     "once": "*",
-    "rimraf": "*"
+    "rimraf": "*",
+    "tape": "*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
