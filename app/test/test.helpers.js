@@ -15,7 +15,7 @@ var logger = {
   error: function(msg) {  }
 }
 
-test('generate token', function(t) {
+test('helpers - generate token', function(t) {
   var client = datastore({path: './tests-xhelpersdb'})
   var helpers = require('index/helpers')(config, client, logger)
 

@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "test": "nodeunit ./test"
+    "test": "tape app/test/*.js | faucet"
   },
   "main": "app/server.js",
   "dependencies": {
@@ -29,7 +29,8 @@
     "domain": "*",
     "once": "*",
     "rimraf": "*",
-    "tape": "*"
+    "tape": "*",
+    "faucet": "*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

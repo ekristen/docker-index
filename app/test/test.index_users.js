@@ -15,7 +15,7 @@ process.on('uncaughtException', function(err) {
   console.error(err.stack)
 })
 
-test('server setup', function(t) {
+test('internal users - setup', function(t) {
   SERVER = restify.createServer({
     name: 'myapp',
     version: '1.0.0'
@@ -40,7 +40,7 @@ test('server setup', function(t) {
   })
 })
 
-test('users - create user', function(t) {
+test('internal users - create user', function(t) {
   var body = 'username=testing3&password=testing3&email=testing3@testing3.com'
   STR_CLIENT.post('/v1/users', body, function(err, req, res, data) {
     t.ifError(err, 'there shoudl be no error on create user')
@@ -51,7 +51,7 @@ test('users - create user', function(t) {
   })
 })
 
-test('users - account disabled', function(test) {  
+test('internal users - account disabled', function(test) {  
   var options = {
     path: '/v1/users',
     headers: {
@@ -68,7 +68,7 @@ test('users - account disabled', function(test) {
   })
 })
 
-test('users - user exists', function(test) {
+test('internal users - user exists', function(test) {
   var body = 'username=testing3&password=testing3&email=testing3@testing3.com'
   STR_CLIENT.post('/v1/users', body, function(err, req, res, data) {
     test.ok(err, 'the client should have no error')
@@ -78,7 +78,7 @@ test('users - user exists', function(test) {
   })
 })
 
-test('users - successful login', function(test) {
+test('internal users - successful login', function(test) {
   client.get(client.key('users', 'testing3'), function(err, value) {
     value.disabled = false
     client.put(client.key('users', 'testing3'), value)
@@ -97,7 +97,7 @@ test('users - successful login', function(test) {
   })
 })
 
-test('users - bad username/password', function(test) {
+test('internal users - bad username/password', function(test) {
   var options = {
     path: '/v1/users',
     headers: {
@@ -112,7 +112,7 @@ test('users - bad username/password', function(test) {
   })
 })
 
-test('users - nonexistent user', function(test) {
+test('internal users - nonexistent user', function(test) {
   var options = {
     path: '/v1/users',
     headers: {
@@ -127,7 +127,7 @@ test('users - nonexistent user', function(test) {
   })
 })
 
-test('tear down', function(t) {
+test('internal users - tear down', function(t) {
   STR_CLIENT.close()
   SERVER.close(function() {
     rimraf('./tests-ixusersdb', function() {

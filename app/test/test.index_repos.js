@@ -28,7 +28,7 @@ process.on('uncaughtException', function(err) {
   console.error(err.stack)
 })
 
-test('server setup', function(t) {
+test('index repos - setup', function(t) {
   SERVER = restify.createServer({
     name: 'myapp',
     version: '1.0.0'
@@ -70,14 +70,14 @@ test('server setup', function(t) {
   })
 })
 
-test('repo put', function(t) {
+test('index repos - repo put', function(t) {
   var options = {
     path: '/v1/repositories/base/debian',
     headers: {
       authorization: util.format('Basic %s', new Buffer("testing:testing").toString('base64'))
     }
   }
-  
+
   var layers = [
     {id: "9e89cc6f0bc3c38722009fe6857087b486531f9a779a0c17e3ed29dae8f12c4f"},
     {id: "9e89cc6f0bc3c38722009fe6857087b486531f9a779a0c17e3ed29dae8f12c4g", Tag: 'latest'}
@@ -97,7 +97,7 @@ test('repo put', function(t) {
   })
 })
 
-test('tear down', function(t) {
+test('index repos - tear down', function(t) {
   JSON_CLIENT.close()
   SERVER.close(function() {
     rimraf('./tests-ixreposdb', function() {

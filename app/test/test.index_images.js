@@ -29,7 +29,7 @@ process.on('uncaughtException', function(err) {
   console.error(err.stack);
 });
 
-test('server setup', function(t) {
+test('index images - setup', function(t) {
   SERVER = restify.createServer({
     name: 'myapp',
     version: '1.0.0'
@@ -48,27 +48,27 @@ test('server setup', function(t) {
 
   SERVER.listen(9999, '127.0.0.1', function() {
     STR_CLIENT = restify.createStringClient({
-        url: 'http://127.0.0.1:9999',
-        retry: false
+      url: 'http://127.0.0.1:9999',
+      retry: false
     });
 
-      client.put(client.key('users', 'testing'), {
-        username: 'testing',
-        password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
-        email: 'testing@testing.com',
-        disabled: false,
-        admin: true,
-        permissions: {
-          'testing': 'admin',
-          'base': 'admin'
-        }
-      }, { sync: true }, function(err) {
-        t.end()
-      });
+    client.put(client.key('users', 'testing'), {
+      username: 'testing',
+      password: 'dc724af18fbdd4e59189f5fe768a5f8311527050',
+      email: 'testing@testing.com',
+      disabled: false,
+      admin: true,
+      permissions: {
+        'testing': 'admin',
+        'base': 'admin'
+      }
+    }, { sync: true }, function(err) {
+      t.end()
+    });
   });
 })
 
-test('put images', function(t) {
+test('index images - put images', function(t) {
   var options = {
     path: '/v1/repositories/base/debian/images',
     headers: {
@@ -85,7 +85,7 @@ test('put images', function(t) {
   });
 })
 
-test('get images', function(t) {
+test('index images - get images', function(t) {
   var layers = {};
   client.put(client.key('images', 'base', 'debian'), layers, { sync: true }, function(err, success) {
     helper.generateToken('base/debian', 'write', function(err, token) {
@@ -109,7 +109,7 @@ test('get images', function(t) {
   });
 })
 
-test('tear down', function(t) {
+test('index images - tear down', function(t) {
   STR_CLIENT.close()
   SERVER.close(function() {
     rimraf('./tests-iximagesdb', function() {
