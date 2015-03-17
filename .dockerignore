@@ -1,5 +1,10 @@
-config/local.js
-node_modules
 .git
-test/*
+.DS_Store
+.travis.yml
+fig.yml
+npm-debug.log
+node_modules
+config/local.js
+config/runtime.json
+tests-*db
 db
