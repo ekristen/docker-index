@@ -34,6 +34,7 @@ test('internal users - setup', function(t) {
   SERVER.get('/users', users.listUsers)
   SERVER.post('/users', users.createUser)
   SERVER.get('/users/:username', users.getUser)
+  SERVER.del('/users/:username', users.deleteUser)
   SERVER.get('/users/:username/enable', users.enableUser)
   SERVER.get('/users/:username/disable', users.disableUser)
   SERVER.get('/users/:username/permissions', users.getUserPermissions)
@@ -291,6 +292,16 @@ test('internal users - create user missing email field', function(test) {
     test.ok(req)
     test.equal(data, 'email field is required')
     test.end()
+  })
+})
+
+
+test('internal users - delete user', function(t) {
+  STR_CLIENT.del('/users/testing3', function(err, req, res, data) {
+    t.ifError(err)
+    t.equal(res.statusCode, 201)
+    t.equal(data, '{"message":"account deleted","user":"testing3"}')
+    t.end()
   })
 })
 

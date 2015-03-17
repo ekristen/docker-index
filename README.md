@@ -6,6 +6,9 @@ Version 2 is in the works. It is going to abstract the data storage to support m
 
 The `develop` branch will contain all the work going into `v2` going forward, will merge into `master` once it goes into beta.
 
+The `develop` branch contains a lot of changes, I would not use it for production use right now.
+
+
 # Overview
 
 The purpose of this project is to provide the docker masses with an authenticated docker index for their own docker registry that has real repository access controls instead of just using htaccess on a reverse proxy.
