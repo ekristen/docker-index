@@ -21,7 +21,8 @@
     "request": "~2.49.0",
     "restify": "git+https://github.com/ekristen/node-restify.git",
     "restify-endpoints": "~1.1.1",
-    "underscore": "~1.6.0"
+    "underscore": "~1.6.0",
+    "xtend": "^4.0.0"
   },
   "devDependencies": {
     "nodeunit": "*",
