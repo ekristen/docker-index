@@ -1,7 +1,7 @@
 var config = require('config');
 var restify = require('restify');
 var bunyan = require('bunyan');
-var restify_endpoints = require('restify-endpoints');
+var Endpointer = require('endpointer/restify');
 
 // Setup logger
 var logger = bunyan.createLogger({
@@ -22,9 +22,14 @@ redis.on('error', function(err) {
 });
 
 // Setup Restify Endpoints
-var endpoints = new restify_endpoints.EndpointManager({
-  endpointpath: __dirname + '/endpoints',
-  endpoint_args: [config, redis, logger]
+var endpoints = new Endpointer({
+  docs: {
+    title: 'Docker Index',
+    enabled: true
+  },
+  endpoints: __dirname + '/endpoints',
+  arguments: [config, redis, logger],
+  version: '1.0.0'
 });
 
 // Create our Restify server

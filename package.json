@@ -9,14 +9,15 @@
     "test": "nodeunit ./test"
   },
   "dependencies": {
+    "async": "~0.6.2",
+    "bunyan": "~0.22.1",
+    "config": "~0.4.35",
+    "endpointer": "git://github.com/ekristen/endpointer#docs",
+    "redis": "~0.10.3",
+    "request": "~2.49.0",
     "restify": "git+https://github.com/ekristen/node-restify.git",
     "restify-endpoints": "~1.1.1",
-    "bunyan": "~0.22.1",
-    "async": "~0.6.2",
-    "config": "~0.4.35",
-    "redis": "~0.10.3",
-    "underscore": "~1.6.0",
-    "request": "~2.49.0"
+    "underscore": "~1.6.0"
   },
   "devDependencies": {
     "nodeunit": "*",
