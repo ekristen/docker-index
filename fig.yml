@@ -1,3 +1,9 @@
+redis:
+  image: redis
+  command: redis-server --appendonly yes
+  volumes:
+    - /tmp/redis:/data
+
 registry:
   image: ekristen/docker-index-registry:0.9.0
   links:
@@ -17,6 +23,7 @@ registry:
 
 index:
   build: .
+#  image: ekristen/docker-index:1.4.0-rc1
   ports:
     - 5100:5100
   environment:
