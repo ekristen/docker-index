@@ -36,7 +36,7 @@ module.exports = function(config, redis, logger) {
       {
         name: 'Delete User',
         description: 'Delete User from Index',
-        method: 'DELETE',
+        method: 'DEL',
         path: '/users/:username',
         version: '1.0.0',
         fn: internal_users.deleteUser,
