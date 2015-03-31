@@ -1,10 +1,5 @@
 registry:
   image: ekristen/docker-index-registry:0.9.0
-  links:
-    - redis:redis
-    - index:index
-  ports:
-    - 5000:5000
   environment:
     - DEBUG=true
     - STANDALONE=false
@@ -12,13 +7,11 @@ registry:
     - DISABLE_TOKEN_AUTH=false
     - SETTINGS_FLAVOR=local
     - INDEX_ENDPOINT=https://index.private.io
-#  volumes:
-#    - /tmp/registry:/data/registry
+  volumes:
+    - /tmp/registry:/data/registry
 
 index:
   build: .
-  ports:
-    - 5100:5100
   environment:
     - NODE_TLS_REJECT_UNAUTHORIZED=0
     - REGISTRIES=registry.private.io
@@ -26,6 +19,8 @@ index:
     - NODE_ENV=docker
     - LOG_LEVEL=debug
     - WEBHOOKS_DISABLED=true
+  links:
+    - registry:registry    
   volumes:
     - /tmp/index:/data
 

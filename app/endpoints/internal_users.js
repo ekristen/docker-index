@@ -84,7 +84,7 @@ module.exports = function(config, redis, logger) {
           '/users/:username'
         ],
         version: '1.0.0',
-        fn: internal_user.deleteUser,
+        fn: internal_users.deleteUser,
         middleware: [
           internal_middleware.requireAuth,
           internal_middleware.requireAdmin
