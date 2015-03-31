@@ -91,7 +91,7 @@ module.exports = function(config, redis, logger) {
         });
       });
     },
-    
+
     validateUser: function(req, res, next) {
       if (!req.headers.authorization) {
         return res.send(401);

@@ -9,7 +9,6 @@ registry:
   image: ekristen/docker-index-registry:0.9.0
   links:
     - redis:redis
-    - index:index
   ports:
     - 5000:5000
   environment:

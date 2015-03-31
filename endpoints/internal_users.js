@@ -34,6 +34,19 @@ module.exports = function(config, redis, logger) {
       },
       
       {
+        name: 'Delete User',
+        description: 'Delete User from Index',
+        method: 'DELETE',
+        path: '/users/:username',
+        version: '1.0.0',
+        fn: internal_users.deleteUser,
+        middleware: [
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
+        ]
+      },
+      
+      {
         name: 'Get User',
         description: 'Get a Single User Entry',
         method: 'GET',
@@ -113,7 +126,37 @@ module.exports = function(config, redis, logger) {
           internal_middleware.requireAuth,
           internal_middleware.requireAdmin
         ]
-      }
+      },
+      
+      {
+        name: 'Grant Admin',
+        description: 'Grant Admin to a Single User',
+        method: 'PUT',
+        path: [
+          '/users/:username/admin'
+        ],
+        version: '1.0.0',
+        fn: internal_users.grantAdmin,
+        middleware: [
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
+        ]
+      },
+      
+      {
+        name: 'Revoke Admin',
+        description: 'Revoke Admin to a Single User',
+        method: 'DEL',
+        path: [
+          '/users/:username/admin'
+        ],
+        version: '1.0.0',
+        fn: internal_users.revokeAdmin,
+        middleware: [
+          internal_middleware.requireAuth,
+          internal_middleware.requireAdmin
+        ]
+      },
 
     ]
   };

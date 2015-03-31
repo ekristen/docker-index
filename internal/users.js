@@ -158,6 +158,30 @@ module.exports = function(redis, logger) {
     });
   };
 
+  endpoints.deleteUser = function(req, res, next) {
+    redis.get("users:" + req.params.username, function(err, value) {
+      if (err) {
+        res.send(500, err);
+        return next();
+      }
+
+      if (value == null) {
+        res.send(404, {message: 'user does not exist'})
+        return next()
+      }
+
+      redis.del("users:" + req.params.username, function(err) {
+        if (err) {
+          res.send(500, err);
+          return next();
+        }
+
+        res.send(200, {message: 'user has been deleted'})
+        return next()
+      })
+    })
+  }
+
   endpoints.enableUser = function(req, res, next) {
     redis.get('users:' + req.params.username, function(err, user_json) {
       if (err) {
@@ -223,6 +247,76 @@ module.exports = function(redis, logger) {
         }
         
         res.send(201, {message: "account disabled", user: req.params.username});
+        return next();
+      })
+    })
+  };
+
+  endpoints.grantAdmin = function(req, res, next) {
+    redis.get('users:' + req.params.username, function(err, user_json) {
+      if (err) {
+        res.send(500, {message: err, error: true});
+        return next();
+      }
+
+      if (user_json == null) {
+        res.send(409, {message: 'user does not exist', error: true});
+        return next();
+      }
+      
+      try {
+        var user = JSON.parse(user_json);
+      }
+      catch (e) {
+        return next(e);
+      }
+      
+      var userObj = user;
+      userObj.admin = true;
+      
+      redis.set('users:' + req.params.username, JSON.stringify(userObj), function(err) {
+        if (err) {
+          logger.error({err: err}, "Redis Error -- Unable to Set Key");
+          res.send(500, {err: err});
+          return next();
+        }
+        
+        res.send(200, {message: "admin granted", user: req.params.username});
+        return next();
+      })
+    })
+  };
+  
+  endpoints.revokeAdmin = function(req, res, next) {
+    redis.get('users:' + req.params.username, function(err, user_json) {
+      if (err) {
+        res.send(500, {message: err, error: true});
+        return next();
+      }
+
+      if (user_json == null) {
+        res.send(409, {message: 'user does not exist', error: true});
+        return next();
+      }
+      
+      try {
+        var user = JSON.parse(user_json);
+      }
+      catch (e) {
+        return next(e);
+      }
+      
+      var userObj = user;
+      userObj.admin = false;
+      
+      redis.set('users:' + req.params.username, JSON.stringify(userObj), function(err) {
+        if (err) {
+          logger.error({err: err}, "Redis Error -- Unable to Set Key");
+          res.send(500, {err: err});
+          return next();
+        }
+        
+        res.send(200, {message: "admin revoked", user: req.params.username});
         return next();
       })
     })

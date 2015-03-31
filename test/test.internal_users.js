@@ -52,8 +52,11 @@ exports.setUp = function(done) {
   SERVER.get('/users', users.listUsers);
   SERVER.post('/users', users.createUser);
   SERVER.get('/users/:username', users.getUser);
+  SERVER.del('/users/:username', users.deleteUser);
   SERVER.get('/users/:username/enable', users.enableUser);
   SERVER.get('/users/:username/disable', users.disableUser);
+  SERVER.put('/users/:username/admin', users.grantAdmin);
+  SERVER.del('/users/:username/admin', users.revokeAdmin);
   SERVER.get('/users/:username/permissions', users.getUserPermissions);
   SERVER.put('/users/:username/permissions', users.addUserPermission);
   SERVER.del('/users/:username/permissions/:repo', users.removeUserPermission);
@@ -275,3 +278,37 @@ exports.CreateUserMissingEmailField = function(test) {
     test.done();
   });
 };
+
+exports.GrantAdmin = function(test) {
+  STR_CLIENT.put('/users/testing/admin', function(err, req, res, data) {
+    test.ok(!err);
+    test.equal(res.statusCode, 200)
+    test.ok(res);
+    test.ok(req);
+    test.equal(data, '{"message":"admin granted","user":"testing"}');
+    test.done();
+  });
+};
+
+exports.RevokeAdmin = function(test) {
+  STR_CLIENT.del('/users/testing/admin', function(err, req, res, data) {
+    test.ok(!err);
+    test.equal(res.statusCode, 200)
+    test.ok(res);
+    test.ok(req);
+    test.equal(data, '{"message":"admin revoked","user":"testing"}');
+    test.done();
+  });
+};
+
+exports.DeleteUser = function(test) {
+  STR_CLIENT.del('/users/testing', function(err, req, res, data) {
+    test.ok(!err);
+    test.equal(res.statusCode, 200)
+    test.ok(res);
+    test.ok(req);
+    test.equal(data, '{"message":"user has been deleted"}');
+    test.done();
+  });
+};
+
