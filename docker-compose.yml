@@ -1,16 +1,10 @@
-redis:
-  image: redis
-  command: redis-server --appendonly yes
+leveldb:
+  image: ekristen/leveldb
   volumes:
-    - /tmp/redis:/data
+    - /tmp/leveldb:/opt/app/db
 
 registry:
   image: ekristen/docker-index-registry:0.9.0
-  links:
-    - redis:redis
-    - index:index
-  ports:
-    - 5000:5000
   environment:
     - DEBUG=true
     - STANDALONE=false
@@ -18,14 +12,14 @@ registry:
     - DISABLE_TOKEN_AUTH=false
     - SETTINGS_FLAVOR=local
     - INDEX_ENDPOINT=https://index.private.io
-#  volumes:
-#    - /tmp/registry:/data/registry
+  volumes:
+    - /tmp/registry:/data/registry
 
 index:
   build: .
-#  image: ekristen/docker-index:1.4.0-rc1
-  ports:
-    - 5100:5100
+  links:
+    - leveldb:leveldb
+    - registry:registry
   environment:
     - NODE_TLS_REJECT_UNAUTHORIZED=0
     - REGISTRIES=registry.private.io
