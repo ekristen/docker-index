@@ -1,8 +1,3 @@
-leveldb:
-  image: ekristen/leveldb
-  volumes:
-    - /tmp/leveldb:/opt/app/db
-
 registry:
   image: ekristen/docker-index-registry:0.9.0
   environment:
@@ -17,9 +12,6 @@ registry:
 
 index:
   build: .
-  links:
-    - leveldb:leveldb
-    - registry:registry
   environment:
     - NODE_TLS_REJECT_UNAUTHORIZED=0
     - REGISTRIES=registry.private.io
@@ -27,6 +19,8 @@ index:
     - NODE_ENV=docker
     - LOG_LEVEL=debug
     - WEBHOOKS_DISABLED=true
+  links:
+    - registry:registry    
   volumes:
     - /tmp/index:/data
 
