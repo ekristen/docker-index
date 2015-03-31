@@ -73,13 +73,13 @@ module.exports = function(config, redis, logger) {
               return next();
             }
 
-            if (req.method == 'GET' && req.permission != "read" && req.permission != "readwrite" && req.permission != "admin") {
+            if (req.method == 'GET' && req.permission != "read" && req.permission != "admin") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: GET requested'});
               res.send(403, "access denied");
               return next();
             }
       
-            if (req.method == "PUT" && req.permission != "write" && req.permission != "readwrite" && req.permission != "admin") {
+            if (req.method == "PUT" && req.permission != "write" && req.permission != "admin") {
               logger.debug({req: req, permission: req.permission, statusCode: 403, message: 'access denied: PUT requested'});
               res.send(403, "access denied");
               return next();
