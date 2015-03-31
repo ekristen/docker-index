@@ -6,7 +6,6 @@ module.exports = function(config, redis, logger) {
   var endpoints = {};
 
   endpoints.ping = function(req, res, next) {
-    // TODO: pass through to the actual registry??
     if (typeof(config.test) != "undefined" && config.test == true) {
       res.setHeader('X-Docker-Registry-Standalone', 'false');
       res.send(200);
