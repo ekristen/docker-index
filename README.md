@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/ekristen/docker-index.png)](https://travis-ci.org/ekristen/docker-index)
 
+# Project Direction
+
 Docker is working on version 2 of the registry which will not longer need this project, however it will need a token authentication server (which I have one in the works). To that end I will be wrapping up this project. Bug fixes will still happen, Pull Requests will be welcome as well, so long as they aren't major changes. 
 
 I will provide an updae with respect to the version 2 auth server as soon as I have it online and working.
