@@ -5,7 +5,7 @@ module.exports = function(config, redis, logger) {
 
   return {
     
-    repoGet: function (req, res, next) {
+    repoPut: function (req, res, next) {
       if (!req.params.namespace)
         req.params.namespace = 'library';
         

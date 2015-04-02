@@ -11,14 +11,14 @@ module.exports = function(config, redis, logger) {
     endpoints: [
       {
         name: 'putLibraryRepo',
-        description: 'Get Library Repository',
+        description: 'Put Library Repository',
         method: 'PUT',
         path: [
           '/v1/repositories/:repo',
           '/v1/repositories/:namespace/:repo'
         ],
         version: '1.0.0',
-        fn: index_repos.repoGet,
+        fn: index_repos.repoPut,
         middleware: [
           index_middleware.requireAuth
         ],
