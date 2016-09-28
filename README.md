@@ -1,3 +1,5 @@
+**DEPRECATED:** Docker has deprecated v1 of the registry which this is the companion authentication service for. 
+
 [![Build Status](https://travis-ci.org/ekristen/docker-index.png)](https://travis-ci.org/ekristen/docker-index)
 
 # Project Direction
